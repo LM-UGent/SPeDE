@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 
 import numpy as np
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),".."))
@@ -58,8 +59,12 @@ class SpectrumClustering:
 
         # Set all lower-triangular spectra to NaN in order to find the indices of the zero elements in the upper
         # triangular portion of the uniqueness matrix
-        uniqueness_matrix[np.tril_indices(uniqueness_matrix.shape[0], 0)] = np.nan
-        zero_indices = np.argwhere(uniqueness_matrix == 0)
+        uniqueness_matrix[np.tril_indices(uniqueness_matrix.shape[0], -1)] = np.nan
+
+
+        #convert the uniqueness_matrix nd_array to a panda dataframe
+        uniqueness_matrix = pd.DataFrame(uniqueness_matrix)
+
 
         # Each element of the array `spectra` is a tuple consisting of four spectra denoting:
         #   - A boolean indicating whether this spectra was visited
@@ -68,70 +73,64 @@ class SpectrumClustering:
         #   - A boolean indicating whether this spectrum is a reference spectrum
         spectra = [[False, [], None, False] for _ in range(len(self.provider.green_filenames))]
 
-        for i, j in zero_indices:
-            # Convert Numpy integers to good ol' Python integers.
-            #todo: optimize: necessary?
-            i, j = int(i), int(j)
+        ####### code changed by charles: to select correct references
+        for column in uniqueness_matrix:
+            # all row indexes in the coolumn with value 0, converted to a numpy array
+            item_index = np.where(uniqueness_matrix[column] == 0)
+            item_index = np.asarray(item_index)
 
-            # Mark the involved spectra as visited
-            spectra[i][0],spectra[j][0] = True, True
+            # the index of the current column
+            index_column = uniqueness_matrix.columns.get_loc(column)
 
-            # Append element i to the array present in spectra[j]
-            # todo: check: Do they need to be linked if they are not processed due to too low PPMC in the next step?
-            spectra[j][1]+=[i]
+            # mark the spectrum to be visited
+            spectra[index_column][0] = True
 
-            # Don't further process matches where the total PPMC of the peaks above 2100 is lower than the threshold
-            #todo: optimize: definitely
-            samples_file_i, samples_file_j = fms_files[i][235:], fms_files[j][235:]
-            if np.corrcoef(samples_file_i, samples_file_j)[0, 1] * 100 < self.threshold:
-                continue
+            # check if the spectrum is a reference, if so mark the spectrum to be a reference
+            if index_column == item_index.item(0):
+                # this sample is a reference
+                spectra[index_column][3] = True
 
-            #spectrum[x][2]: An index indicating the spectrum it refers to, None if N/A
-            if spectra[i][2] and spectra[j][2]:
-                #both already refer to another spectrum, just match these two
-                self.match_array.append([filenames[j], filenames[i]])
-            elif spectra[i][2] and not spectra[j][2]:
-                # The second spectrum does is not a reference yet
-                # Make sure the second spectrum is unique wrt the whole chain, so check unicity with every reference
-                # that's linked.
+            # spectrum is not a reference
+            else:
+                for x in np.nditer(item_index):
+                    x = int(x)
 
-                # Make the second spectrum refer to the reference of the first spectrum
-                referred_index=spectra[i][2]
-                ref_unique_peaks=uniqueness_matrix[referred_index][2]
-                #repeat until we reach the end of the chain, or a unique peak is found
-                while ref_unique_peaks == 0 and referred_index is not None:
-                    # j= second spectrum index
-                    # get the next reference in the chain
-                    referred_index=spectra[referred_index][2]
-                    # check uniqueness of second spectrum wrt referred spectrum
-                    ref_unique_peaks=uniqueness_matrix[referred_index][j]
-
-                if ref_unique_peaks!=0:
-                    # ref is found
-                    spectra[j][3]=True
-                    spectra[j][2]=referred_index
-                    self.match_array.append([filenames[j], filenames[i]])
-
-                else: #ref_unique_peaks==0 and referred_index== None
-                    #end of the chain is reached
-                    # no new reference has been found, just add a match
-                    self.match_array.append([filenames[j], filenames[i]])
-
-            elif not spectra[i][2] and spectra[j][2]:
-                #make the first spectrum a reference, and match the second with the first
-                spectra[i][3]=True
-                self.match_array.append([filenames[j], filenames[i]])
-            else: # not spectra[j][2] and not spectra[i][2]:
-                # If both involved spectra don't refer to another spectra, then make j refer to i
-                self.refer_array.append([filenames[j], filenames[i]])
-                #self.outfile.write('REFER {0} {1}\n'.format(filenames[j], filenames[i]))
-                spectra[j][2] = i
-                spectra[i][3] = True
+                    if x < column:
+                        if spectra[x][3]:
+                            # add the refering to the list
+                            self.refer_array.append([filenames[index_column], filenames[x]])
 
 
-        # Place each unvisited spectrum in its own cluster
-        spectra = [[True, [i], False, True] if not visited else [visited, refers, has_reference, is_reference]
-                   for i, [visited, refers, has_reference, is_reference] in enumerate(spectra)]
+                            # mark the spectrum as "not a reference"
+                            spectra[index_column][3] = False
+
+                            break
+                    else:
+                        spectra[index_column][3] = True
+
+                # this spectrum is refered to first reference in the arrays of zeros
+
+
+                    #check if the zero element is already called as a reference
+
+
+                        ####
+                        #check if the total PPMC of sample en reference >75%, ifso refer sample to ref
+                        #samples_file_x, samples_file_index_column = fms_files[x][235:], fms_files[index_column][235:]
+                        #if np.corrcoef(samples_file_x, samples_file_index_column)[0, 1] * 100 < self.threshold:
+                            #spectra[index_column][2] = x
+                            ## add the refering to the list
+                            #self.refer_array.append([filenames[index_column], filenames[x]])
+                        ####
+
+                # mark all other zero elements as matching
+                for x in np.nditer(item_index):
+                    x = int(x)
+                    if x < index_column:
+                        spectra[index_column][1] += [x]
+                        self.match_array.append([filenames[index_column], filenames[x]])
+
+        ################# enc of charles code
 
         # Make a list with length len(spectra), the value at index i is a set{i} if the spectrum at that index is a reference spectrum
 
