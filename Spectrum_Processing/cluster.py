@@ -73,7 +73,6 @@ class SpectrumClustering:
         #   - A boolean indicating whether this spectrum is a reference spectrum
         spectra = [[False, [], None, False] for _ in range(len(self.provider.green_filenames))]
 
-        ####### code changed by charles: to select correct references
         for column in uniqueness_matrix:
             # all row indexes in the coolumn with value 0, converted to a numpy array
             item_index = np.where(uniqueness_matrix[column] == 0)
@@ -129,8 +128,6 @@ class SpectrumClustering:
                     if x < index_column:
                         spectra[index_column][1] += [x]
                         self.match_array.append([filenames[index_column], filenames[x]])
-
-        ################# enc of charles code
 
         # Make a list with length len(spectra), the value at index i is a set{i} if the spectrum at that index is a reference spectrum
 
