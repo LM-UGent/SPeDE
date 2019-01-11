@@ -1,0 +1,683 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spectrum_Processing package &#8212; SPeDE  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="GUI package" href="GUI.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="spectrum-processing-package">
+<h1>Spectrum_Processing package<a class="headerlink" href="#spectrum-processing-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-Spectrum_Processing.SPeDE">
+<span id="spectrum-processing-spede-module"></span><h2>Spectrum_Processing.SPeDE module<a class="headerlink" href="#module-Spectrum_Processing.SPeDE" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="Spectrum_Processing.SPeDE.SPeDE_wrapper">
+<code class="descclassname">Spectrum_Processing.SPeDE.</code><code class="descname">SPeDE_wrapper</code><span class="sig-paren">(</span><em>argdict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/SPeDE.html#SPeDE_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.SPeDE.SPeDE_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to adress the main function in a new process</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argdict</strong> – a dictionary containing all arguments for the main SPeDE function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">output of main</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Spectrum_Processing.SPeDE.main">
+<code class="descclassname">Spectrum_Processing.SPeDE.</code><code class="descname">main</code><span class="sig-paren">(</span><em>intervals</em>, <em>project_directory</em>, <em>output_directory</em>, <em>peaks</em>, <em>density</em>, <em>local</em>, <em>cutoff</em>, <em>validate</em>, <em>validation_name</em>, <em>cluster</em>, <em>name</em>, <em>output_format</em>, <em>copy</em>, <em>krona</em>, <em>affix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/SPeDE.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.SPeDE.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-Spectrum_Processing.cluster">
+<span id="spectrum-processing-cluster-module"></span><h2>Spectrum_Processing.cluster module<a class="headerlink" href="#module-Spectrum_Processing.cluster" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Spectrum_Processing.cluster.SpectrumClustering">
+<em class="property">class </em><code class="descclassname">Spectrum_Processing.cluster.</code><code class="descname">SpectrumClustering</code><span class="sig-paren">(</span><em>provider</em>, <em>threshold</em>, <em>output_directory</em>, <em>out_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/cluster.html#SpectrumClustering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.cluster.SpectrumClustering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The Class that takes care of matching, referencing and grouping (clustering) the data present in the uniqueness matrix.</p>
+<p>Construct a class that can cluster uniqueness values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>provider</strong> (<a class="reference internal" href="#Spectrum_Processing.provider.FileProvider" title="Spectrum_Processing.provider.FileProvider"><em>FileProvider</em></a>) – Provides the input files and locations used in calculations.</li>
+<li><strong>threshold</strong> (<em>int</em>) – Cluster threshold.</li>
+<li><strong>output_directory</strong> (<em>str</em>) – Path to the output folder</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Spectrum_Processing.cluster.SpectrumClustering.generate_reference_list">
+<code class="descname">generate_reference_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/cluster.html#SpectrumClustering.generate_reference_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.cluster.SpectrumClustering.generate_reference_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a reference list which contains all references.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.cluster.SpectrumClustering.integrate_dice_refers">
+<code class="descname">integrate_dice_refers</code><span class="sig-paren">(</span><em>dice_refer_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/cluster.html#SpectrumClustering.integrate_dice_refers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.cluster.SpectrumClustering.integrate_dice_refers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add all dice refers to the cluster refer array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dice_refer_array</strong> – An array with refers generated from dice matching.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.cluster.SpectrumClustering.prepare_clustering">
+<code class="descname">prepare_clustering</code><span class="sig-paren">(</span><em>uniqueness_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/cluster.html#SpectrumClustering.prepare_clustering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.cluster.SpectrumClustering.prepare_clustering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the clustering of the uniqueness matrix to their respective arrays.</p>
+<p>The 3 attributes refer_array, match_array, group_array are constructed.
+After executing each array contains size 3 arrays representing a REFER, MATCH, or GROUP</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uniqueness_matrix</strong> (<em>array</em>) – A square matrix representing the uniqueness matrix.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.cluster.SpectrumClustering.write_clustering">
+<code class="descname">write_clustering</code><span class="sig-paren">(</span><em>out_format</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/cluster.html#SpectrumClustering.write_clustering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.cluster.SpectrumClustering.write_clustering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write all clustering info in the format <cite>out_format</cite> to an output file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>out_format</strong> (<em>str</em>) – The format of the output file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Spectrum_Processing.dicematcher">
+<span id="spectrum-processing-dicematcher-module"></span><h2>Spectrum_Processing.dicematcher module<a class="headerlink" href="#module-Spectrum_Processing.dicematcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Spectrum_Processing.dicematcher.DiceMatcher">
+<em class="property">class </em><code class="descclassname">Spectrum_Processing.dicematcher.</code><code class="descname">DiceMatcher</code><span class="sig-paren">(</span><em>provider</em>, <em>reference_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/dicematcher.html#DiceMatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.dicematcher.DiceMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class that takes care of DICE matching samples to a reference list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>provider</strong> (<a class="reference internal" href="#Spectrum_Processing.provider.FileProvider" title="Spectrum_Processing.provider.FileProvider"><em>FileProvider</em></a>) – Instance of FileProvider class.</li>
+<li><strong>reference_list</strong> (<em>array</em>) – An array containing all unique references.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Spectrum_Processing.dicematcher.DiceMatcher.calc_dice_value">
+<code class="descname">calc_dice_value</code><span class="sig-paren">(</span><em>sample</em>, <em>reference</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/dicematcher.html#DiceMatcher.calc_dice_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.dicematcher.DiceMatcher.calc_dice_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the dice value for two peak files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sample</strong> (<em>array</em>) – Peak file content of a sample.</li>
+<li><strong>reference</strong> – Peak file content of a reference.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(double) the dice value of the comparison of sample and reference</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.dicematcher.DiceMatcher.generate_dice_matrix">
+<code class="descname">generate_dice_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/dicematcher.html#DiceMatcher.generate_dice_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.dicematcher.DiceMatcher.generate_dice_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a matrix with dice values.</p>
+<blockquote>
+<div>Each row is an orange spectrum and each column is a reference spectrum.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.dicematcher.DiceMatcher.generate_dice_referlist">
+<code class="descname">generate_dice_referlist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/dicematcher.html#DiceMatcher.generate_dice_referlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.dicematcher.DiceMatcher.generate_dice_referlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the values in the dicematrix to refer_list entries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Spectrum_Processing.matcher">
+<span id="spectrum-processing-matcher-module"></span><h2>Spectrum_Processing.matcher module<a class="headerlink" href="#module-Spectrum_Processing.matcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Spectrum_Processing.matcher.SpectrumMatcher">
+<em class="property">class </em><code class="descclassname">Spectrum_Processing.matcher.</code><code class="descname">SpectrumMatcher</code><span class="sig-paren">(</span><em>provider</em>, <em>density</em>, <em>local</em>, <em>cutoff</em>, <em>validate</em>, <em>output_directory</em>, <em>validation_output_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#SpectrumMatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.SpectrumMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handles the creation of a uniqueness matrix.</p>
+<p>Construct a matcher that can be used to calculate the uniqueness matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>provider</strong> (<a class="reference internal" href="#Spectrum_Processing.provider.FileProvider" title="Spectrum_Processing.provider.FileProvider"><em>FileProvider</em></a>) – Provides the input files and locations used in calculations.</li>
+<li><strong>density</strong> (<em>int</em>) – PPMC threshold used to determine matches in the initial matching.</li>
+<li><strong>local</strong> (<em>int</em>) – PPMC local threshold expressed as a percentage used to refine matches based on their PPMC.</li>
+<li><strong>cutoff</strong> (<em>int</em>) – S/N cutoff value.</li>
+<li><strong>validate</strong> (<em>bool</em>) – Determines whether or not the full uniqueness matrix is written to an outputfile validation_data.csv</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Spectrum_Processing.matcher.SpectrumMatcher.calculate_uniqueness_matrix">
+<code class="descname">calculate_uniqueness_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#SpectrumMatcher.calculate_uniqueness_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.SpectrumMatcher.calculate_uniqueness_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the uniqueness matrix and optionally prints validation data.</p>
+<p>When the flag -v is set, the validation data will be printed to an external file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The uniqueness matrix of all files contained in <cite>provider</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.matcher.SpectrumMatcher.print_validation">
+<code class="descname">print_validation</code><span class="sig-paren">(</span><em>uniqueness_matrix</em>, <em>shared_matrix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#SpectrumMatcher.print_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.SpectrumMatcher.print_validation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the uniqueness matrix to an external file data_validation.csv</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>uniqueness_matrix</strong> (<em>array</em>) – The matrix to be serialized.</li>
+<li><strong>shared_matrix</strong> (<em>array</em>) – (Optional) Not currently used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Spectrum_Processing.matcher.add_match">
+<code class="descclassname">Spectrum_Processing.matcher.</code><code class="descname">add_match</code><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#add_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.add_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an entry to the passed variables to indicate a new match has been found.</p>
+<p>For a new M/Z value, fill intervals_x, intervals_y, threshold_exceeded_x and threshold_exceeded_y with the appropriate intervals surrounding
+the M/Z value for x and y. Also fill threshold_exceeded_x/y with whether or not the x/y peak exceeded the cutoff threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mz</strong> (<em>int</em>) – The MZ value of the peak that is compared to.</li>
+<li><strong>x_above</strong> (<em>bool</em>) – Denotes if the x peak S/N value surpasses the threshold value.</li>
+<li><strong>y_above</strong> (<em>bool</em>) – Denotes if the y peak S/N value surpasses the threshold value.</li>
+<li><strong>xy_shared</strong> (<em>bool</em>) – Denotes if x and y are sharing a peak with M/Z value mz.</li>
+<li><strong>intervals</strong> (<em>array</em>) – The first index denotes an M/Z value. The second and third values are the indices in a FMS file for which that index gives you the interval start, respectively end value.</li>
+<li><strong>index</strong> (<em>int</em>) – The index at which a new match should be inserted.</li>
+<li><strong>intervals_x</strong> (<em>array</em>) – Contains at each index the appropriate interval of signal intensities values for spectrum x.</li>
+<li><strong>intervals_y</strong> (<em>array</em>) – Contains at each index the appropriate interval of signal intensities values for spectrum y.</li>
+<li><strong>threshold_exceeded_x</strong> (<em>array</em><em>[</em><em>bool</em><em>]</em>) – Contains at each index whether or not the enlisted peak of spectrum x surpassed the cutoff threshold.</li>
+<li><strong>threshold_exceeded_y</strong> (<em>array</em><em>[</em><em>bool</em><em>]</em>) – Contains at each index whether or not the enlisted peak of spectrum y surpassed the cutoff threshold.</li>
+<li><strong>shared_peaks_xy</strong> (<em>array</em><em>[</em><em>bool</em><em>]</em>) – Contains at each index whether or not the enlisted peak</li>
+<li><strong>fms_file_x</strong> (<em>array</em>) – FMS file of spectrum x.</li>
+<li><strong>fms_file_y</strong> (<em>array</em>) – FMS file of spectrum y.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Spectrum_Processing.matcher.calculate_uniqueness_matrix_step">
+<code class="descclassname">Spectrum_Processing.matcher.</code><code class="descname">calculate_uniqueness_matrix_step</code><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#calculate_uniqueness_matrix_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.calculate_uniqueness_matrix_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a part of the uniqueness matrix.</p>
+<p>A process uses this function to calculate a part of the uniqueness matrix. More specifically, all rows every <cite>step</cite>
+rows is calculated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>matcher</strong> (<em>SpectrumMatcherJIT</em>) – A JIT compiled class containing the necessary variables, files and locations for calculating the partial matrix.</li>
+<li><strong>start</strong> (<em>int</em>) – The first row at which the current process starts.</li>
+<li><strong>step</strong> (<em>int</em>) – The total amount of processes working on the complete uniqueness matrix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A part of the uniqueness matrix and shared matrix in which every step-th row is filled in.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Spectrum_Processing.matcher.calculate_uniqueness_value">
+<code class="descclassname">Spectrum_Processing.matcher.</code><code class="descname">calculate_uniqueness_value</code><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#calculate_uniqueness_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.calculate_uniqueness_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the unique x and unique y values for the given spectra indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>matcher</strong> (<em>SpectrumMatcherJIT</em>) – A JIT compiled class containing the necessary variables, files and locations for calculating the partial matrix.</li>
+<li><strong>i</strong> (<em>int</em>) – The spectra at matrix spot (i,j)=x and (j,i)=y are compared.</li>
+<li><strong>j</strong> (<em>int</em>) – The spectra at matrix spot (i,j)=x and (j,i)=y are compared.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A 3-tuple whose elements are the amount of x, y and shared xy values</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Spectrum_Processing.matcher.construct_matching_list">
+<code class="descclassname">Spectrum_Processing.matcher.</code><code class="descname">construct_matching_list</code><a class="reference internal" href="_modules/Spectrum_Processing/matcher.html#construct_matching_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.matcher.construct_matching_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an array representing the matching of samples between the FMS files based on the PKL files.</p>
+<p>This method implements the first step of computing the uniqueness matrix in the given algorithm. However,
+instead of returning a list of (x_idx, y_idx) pairs, it returns a representation that is better suited for
+efficiently executing subsequent steps of the algorithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>matcher</strong> (<em>SpectrumMatcherJIT</em>) – A JIT compiled class containing the necessary variables, files and locations for current calculations.</li>
+<li><strong>i</strong> (<em>int</em>) – The spectra at matrix spot (i,j)=X and (j,i)=Y are manipulated.</li>
+<li><strong>j</strong> (<em>int</em>) – The spectra at matrix spot (i,j)=X and (j,i)=Y are manipulated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A 5-tuple (intervals_x, intervals_y, threshold_exceeded_x, threshold_exceeded_y containing for all peaks of x and y the appropriate intervals, whether or not a peak surpassed the cutoff threshold and if they share shared peaks.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Spectrum_Processing.postProcess">
+<span id="spectrum-processing-postprocess-module"></span><h2>Spectrum_Processing.postProcess module<a class="headerlink" href="#module-Spectrum_Processing.postProcess" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="Spectrum_Processing.postProcess.NameMapMissing">
+<em class="property">exception </em><code class="descclassname">Spectrum_Processing.postProcess.</code><code class="descname">NameMapMissing</code><a class="reference internal" href="_modules/Spectrum_Processing/postProcess.html#NameMapMissing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.postProcess.NameMapMissing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown when no valid QualityControlledDBFields files are found.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Spectrum_Processing.postProcess.copy_to">
+<code class="descclassname">Spectrum_Processing.postProcess.</code><code class="descname">copy_to</code><span class="sig-paren">(</span><em>reference_list</em>, <em>source_folder</em>, <em>target_folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/postProcess.html#copy_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.postProcess.copy_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy every file of reference_list in source_folder to target_folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_folder</strong> (<em>str</em>) – Path to source folder.</li>
+<li><strong>reference_list</strong> (<em>array</em>) – Array of files to be copied.</li>
+<li><strong>target_folder</strong> (<em>str</em>) – Path to target folder.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Spectrum_Processing.postProcess.format_CSV">
+<code class="descclassname">Spectrum_Processing.postProcess.</code><code class="descname">format_CSV</code><span class="sig-paren">(</span><em>refer_array</em>, <em>group_array</em>, <em>outfile_path</em>, <em>provider</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/postProcess.html#format_CSV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.postProcess.format_CSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the formatted output of SPeDE to a csv file.</p>
+<p>The csv file should contain the following format:
+SOURCE_FILE,REFERENCE,REFERENCE NUMBER,GROUP,QUALITY,STRAIN,BRUKER_TOPHIT,BRUKER_SCORE
+Underneath should be a list with not matched files.
+Underneath that should be a list with rejected files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>refer_array</strong> (<em>array</em>) – a 2D array with at each index a size 2 array depicting REFER A B.</li>
+<li><strong>match_array</strong> (<em>array</em>) – a 2D array with at each index a size 2 array depicting MATCH A B.</li>
+<li><strong>group_array</strong> (<em>array</em>) – a 2D array with at each index a size 2 array depicting GROUP A groupNo.</li>
+<li><strong>outfile_path</strong> (<em>str</em>) – The path to the output file.</li>
+<li><strong>provider</strong> (<a class="reference internal" href="#Spectrum_Processing.provider.FileProvider" title="Spectrum_Processing.provider.FileProvider"><em>FileProvider</em></a>) – a FileProvider to provide file names</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Spectrum_Processing.postProcess.format_TXT">
+<code class="descclassname">Spectrum_Processing.postProcess.</code><code class="descname">format_TXT</code><span class="sig-paren">(</span><em>refer_array</em>, <em>match_array</em>, <em>group_array</em>, <em>outfile_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/postProcess.html#format_TXT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.postProcess.format_TXT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump the refer, match and group array to outfile_path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>refer_array</strong> (<em>array</em>) – An array with all refers.</li>
+<li><strong>match_array</strong> (<em>array</em>) – An array with all matches.</li>
+<li><strong>group_array</strong> (<em>array</em>) – An array with all groups.</li>
+<li><strong>outfile_path</strong> (<em>str</em>) – Path to file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Spectrum_Processing.postProcess.generate_krona">
+<code class="descclassname">Spectrum_Processing.postProcess.</code><code class="descname">generate_krona</code><span class="sig-paren">(</span><em>group_array</em>, <em>refer_array</em>, <em>outfile_path</em>, <em>provider</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/postProcess.html#generate_krona"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.postProcess.generate_krona" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a txt outputfile that’s ready to be processed by krona.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>group_array</strong> (<em>array</em>) – An array with all groups.</li>
+<li><strong>refer_array</strong> – An array with all groups.</li>
+<li><strong>outfile_path</strong> (<em>str</em>) – Path to output file.</li>
+<li><strong>provider</strong> (<a class="reference internal" href="#Spectrum_Processing.provider.FileProvider" title="Spectrum_Processing.provider.FileProvider"><em>FileProvider</em></a>) – a FileProvider to provide file names</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Spectrum_Processing.provider">
+<span id="spectrum-processing-provider-module"></span><h2>Spectrum_Processing.provider module<a class="headerlink" href="#module-Spectrum_Processing.provider" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="Spectrum_Processing.provider.DataMissing">
+<em class="property">exception </em><code class="descclassname">Spectrum_Processing.provider.</code><code class="descname">DataMissing</code><a class="reference internal" href="_modules/Spectrum_Processing/provider.html#DataMissing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.provider.DataMissing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown when no valid peaklist files are found.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="Spectrum_Processing.provider.FileProvider">
+<em class="property">class </em><code class="descclassname">Spectrum_Processing.provider.</code><code class="descname">FileProvider</code><span class="sig-paren">(</span><em>intervals_filename</em>, <em>project_directory</em>, <em>orange_threshold</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/provider.html#FileProvider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.provider.FileProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Construct a file provider that parses and provides input files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>intervals_filename</strong> (<em>str</em>) – The filename of the file containing all intervals.</li>
+<li><strong>project_directory</strong> (<em>str</em>) – The path to the directory containing the FMS and PKL files.</li>
+<li><strong>orange_threshold</strong> (<em>int</em>) – The maximum value of peakcountB for a spectrum to be categorized as orange and to be discarded for clustering.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Spectrum_Processing.provider.FileProvider.parse_fms_file">
+<code class="descname">parse_fms_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/provider.html#FileProvider.parse_fms_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.provider.FileProvider.parse_fms_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the specified FMS file and return its content as a Numpy array.</p>
+<p>Note that the M/Z values are missing. Since these are the same for every file, the M/Z-values can act as
+indices and are not needed separately.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – The name of the FMS file located in the directory <cite>proj_path</cite> without the prefix ‘<a href="#id1"><span class="problematic" id="id2">ReGrid_</span></a>’.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A one-dimensional Numpy array where each entry denotes the S/N value measured at a specific location.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.provider.FileProvider.parse_pkl_file">
+<code class="descname">parse_pkl_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/provider.html#FileProvider.parse_pkl_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.provider.FileProvider.parse_pkl_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the specified peak list file and return its content as a Numpy array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – The name of the PKL file located in the directory <cite>proj_path</cite> without the prefix ‘<a href="#id3"><span class="problematic" id="id4">PKL_</span></a>’.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An N x 2 Numpy array where the first column is the location of a peak and the second is its S/N value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Spectrum_Processing.provider.FileProvider.preprocess_pkl_list">
+<code class="descname">preprocess_pkl_list</code><span class="sig-paren">(</span><em>pkl_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Spectrum_Processing/provider.html#FileProvider.preprocess_pkl_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.provider.FileProvider.preprocess_pkl_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the preprocessed pkl_list if its quality is not red and the quality itself.</p>
+<p>This function removes leading entries with M/Z value &lt;2100.
+The pkl_list’s quality is assessed according to MOIDePuS instructions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pkl_list</strong> (<em>array</em>) – the array to be manipulated.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple of the preprocessed list and an enum denoting the quality of the pkl_list. If the quality is not red, the array’s S/N values will be converted to quality enums.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Spectrum_Processing.provider.Quality">
+<em class="property">class </em><code class="descclassname">Spectrum_Processing.provider.</code><code class="descname">Quality</code><a class="reference internal" href="_modules/Spectrum_Processing/provider.html#Quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Spectrum_Processing.provider.Quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>A class depicting peak quality.</p>
+<p>Peaks with 30 &lt; S/N value are classified as GREEN.
+Peaks with 15 &lt;= S/N value &lt;= 30 are classified as ORANGE.
+Peak with S/N value &lt;15 are classified as RED.</p>
+<dl class="attribute">
+<dt id="Spectrum_Processing.provider.Quality.GREEN">
+<code class="descname">GREEN</code><em class="property"> = 2</em><a class="headerlink" href="#Spectrum_Processing.provider.Quality.GREEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spectrum_Processing.provider.Quality.ORANGE">
+<code class="descname">ORANGE</code><em class="property"> = 1</em><a class="headerlink" href="#Spectrum_Processing.provider.Quality.ORANGE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="Spectrum_Processing.provider.Quality.RED">
+<code class="descname">RED</code><em class="property"> = 0</em><a class="headerlink" href="#Spectrum_Processing.provider.Quality.RED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Spectrum_Processing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Spectrum_Processing" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">SPeDE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="GUI.html">GUI package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Spectrum_Processing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing.SPeDE">Spectrum_Processing.SPeDE module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing.cluster">Spectrum_Processing.cluster module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing.dicematcher">Spectrum_Processing.dicematcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing.matcher">Spectrum_Processing.matcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing.postProcess">Spectrum_Processing.postProcess module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing.provider">Spectrum_Processing.provider module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Spectrum_Processing">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="GUI.html" title="previous chapter">GUI package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vandamme Tim.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/Spectrum_Processing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

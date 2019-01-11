@@ -1,0 +1,225 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spectrum_Processing.SPeDE &#8212; SPeDE  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Spectrum_Processing.SPeDE</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="c1">#Own modules</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span><span class="s2">&quot;..&quot;</span><span class="p">))</span>
+
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.postProcess</span> <span class="k">import</span> <span class="n">generate_krona</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.provider</span> <span class="k">import</span> <span class="n">FileProvider</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.matcher</span> <span class="k">import</span> <span class="n">SpectrumMatcher</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.cluster</span> <span class="k">import</span> <span class="n">SpectrumClustering</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.dicematcher</span> <span class="k">import</span> <span class="n">DiceMatcher</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing</span> <span class="k">import</span> <span class="n">postProcess</span>
+
+
+
+<div class="viewcode-block" id="SPeDE_wrapper"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.SPeDE.SPeDE_wrapper">[docs]</a><span class="k">def</span> <span class="nf">SPeDE_wrapper</span><span class="p">(</span><span class="n">argdict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper to adress the main function in a new process</span>
+
+<span class="sd">    :param argdict: a dictionary containing all arguments for the main SPeDE function</span>
+<span class="sd">    :return: output of main</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#set the stderr to the provided cross process queue</span>
+    <span class="n">queue</span><span class="o">=</span><span class="n">argdict</span><span class="p">[</span><span class="s2">&quot;queue&quot;</span><span class="p">]</span>
+    <span class="n">args</span><span class="o">=</span><span class="n">argdict</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">main</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="c1">#* to unpack all arguments contained in args</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">message</span><span class="o">=</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+        <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.SPeDE.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">project_directory</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">validate</span><span class="p">,</span>  <span class="n">validation_name</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">krona</span><span class="p">,</span> <span class="n">affix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">krona_name</span><span class="o">=</span><span class="s2">&quot;krona_output.txt&quot;</span>
+
+    <span class="n">tic</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">affix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">affix</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2">_%H_%M_%S_&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Reading all spectra...&quot;</span><span class="p">)</span>
+    <span class="n">provider</span> <span class="o">=</span> <span class="n">FileProvider</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">project_directory</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">peaks</span><span class="p">))</span>
+
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Creating SpectrumMatcher...&quot;</span><span class="p">)</span>
+    <span class="n">matcher</span> <span class="o">=</span> <span class="n">SpectrumMatcher</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">density</span><span class="p">),</span> <span class="n">local</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">local</span><span class="p">),</span> <span class="n">cutoff</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cutoff</span><span class="p">),</span>
+                              <span class="n">validate</span><span class="o">=</span><span class="n">validate</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">validation_output_name</span><span class="o">=</span><span class="n">affix</span><span class="o">+</span><span class="n">validation_name</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Calculating uniqueness matrix...&quot;</span><span class="p">)</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">calculate_uniqueness_matrix</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Preparing clustering data...&quot;</span><span class="p">)</span>
+    <span class="n">cluster</span> <span class="o">=</span> <span class="n">SpectrumClustering</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">cluster</span><span class="p">),</span> <span class="n">output_directory</span><span class="o">=</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">out_name</span><span class="o">=</span><span class="n">affix</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_clustering</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Generating cluster reference list...&quot;</span><span class="p">)</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">generate_reference_list</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Preparing dice data...&quot;</span><span class="p">)</span>
+    <span class="n">dice_matcher</span><span class="o">=</span> <span class="n">DiceMatcher</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span><span class="n">cluster</span><span class="o">.</span><span class="n">reference_list</span><span class="p">)</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">integrate_dice_refers</span><span class="p">(</span><span class="n">dice_matcher</span><span class="o">.</span><span class="n">dice_referlist</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Writing clustering...&quot;</span><span class="p">)</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">write_clustering</span><span class="p">(</span><span class="n">output_format</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Postprocessing...&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">krona</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Generating Krona output...&quot;</span><span class="p">)</span>
+        <span class="n">generate_krona</span><span class="p">(</span><span class="n">cluster</span><span class="o">.</span><span class="n">group_array</span><span class="p">,</span> <span class="n">cluster</span><span class="o">.</span><span class="n">refer_array</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span><span class="n">affix</span><span class="o">+</span><span class="n">krona_name</span><span class="p">),</span><span class="n">provider</span><span class="p">)</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Copying unique references to output folder...&quot;</span><span class="p">)</span>
+        <span class="n">submap</span><span class="o">=</span><span class="s2">&quot;References&quot;</span>
+        <span class="n">postProcess</span><span class="o">.</span><span class="n">copy_to</span><span class="p">(</span><span class="n">cluster</span><span class="o">.</span><span class="n">reference_list</span><span class="p">,</span> <span class="n">project_directory</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span><span class="n">affix</span><span class="o">+</span><span class="n">submap</span><span class="p">))</span>
+
+    <span class="n">toc</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">tic</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Total processing time: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">toc</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Determines the reference spectra and clustering of the given samples.&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">700</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the PPM threshold (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;cluster&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">75</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the PPVM cluster threshold in percentage (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-l&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;local&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the PPMC local threshold in percentage (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;cutoff&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the S/N cutoff in M/Z (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--output-format&#39;</span><span class="p">,</span><span class="n">dest</span><span class="o">=</span><span class="s1">&#39;output_format&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;output format of the spectra (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--peak-count-threshold&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;peaks&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Peaks with an S/N value &gt;30 are saved in peakcountB. If peakcountB &gt;= `PEAKS`, then a spectrum is classified as green.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;SPeDE_output&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the name of the reference list output file, extension must match output format. (default: </span><span class="si">%(default)s</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-q&#39;</span><span class="p">,</span> <span class="s1">&#39;--validation-name&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;validation_name&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;data_validation.csv&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;the name of the data validation matrix, must be .csv (default: </span><span class="si">%(default)s</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-e&#39;</span><span class="p">,</span> <span class="s1">&#39;--copy-files&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;copy_files&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;copy the unique references to a subfolder (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-k&#39;</span><span class="p">,</span> <span class="s1">&#39;--krona-output&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;krona&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create a ready-to-go krona output file (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="s1">&#39;--output-validate&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;validate&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;print the validation data to an output file (default: </span><span class="si">%(default)s</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;intervals&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;file specifying the intervals&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;project_directory&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;directory containing all datafiles&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;output_directory&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;directory which will contain any output file&#39;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">project_directory</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">peaks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">density</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">local</span><span class="p">,</span><span class="n">args</span><span class="o">.</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">validate</span><span class="p">,</span>
+         <span class="n">args</span><span class="o">.</span><span class="n">validation_name</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">cluster</span><span class="p">,</span><span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output_format</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">copy_files</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">krona</span><span class="p">)</span>
+
+
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">SPeDE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GUI.html">GUI package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Spectrum_Processing.html">Spectrum_Processing package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vandamme Tim.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

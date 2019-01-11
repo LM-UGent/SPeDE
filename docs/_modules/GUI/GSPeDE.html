@@ -1,0 +1,1166 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GUI.GSPeDE &#8212; SPeDE  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for GUI.GSPeDE</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">from</span> <span class="nn">PyQt5</span> <span class="k">import</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="k">import</span> <span class="n">pyqtSignal</span><span class="p">,</span> <span class="n">pyqtSlot</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtGui</span> <span class="k">import</span> <span class="n">QIcon</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1">#Own modules</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span><span class="s2">&quot;..&quot;</span><span class="p">))</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.SPeDE</span> <span class="k">import</span> <span class="n">SPeDE_wrapper</span>
+<span class="n">DEVELOP</span><span class="o">=</span><span class="kc">False</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+    <span class="n">home</span> <span class="o">=</span> <span class="n">Homescreen</span><span class="p">()</span>
+    <span class="n">home</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Homescreen"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen">[docs]</a><span class="k">class</span> <span class="nc">Homescreen</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Main window of the GSPeDE application.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># initialize value fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density_input</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_input</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_input</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_input</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_picker</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_rb</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">csv_rb</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process_args</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_args</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="o">=</span><span class="kc">None</span>
+
+        <span class="c1">#Output files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="o">=</span><span class="s2">&quot;SPeDE_output&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_validation_name</span><span class="o">=</span><span class="s2">&quot;data_validation.csv&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_krona_name</span><span class="o">=</span><span class="s2">&quot;krona_output.txt&quot;</span>
+
+        <span class="c1">#Gui Config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_value_filename</span><span class="o">=</span><span class="s2">&quot;default_config.yaml&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_disabled_state</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="c1">#default peak value of internal SPeDE program</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_peaks</span><span class="o">=</span><span class="mi">5</span>
+
+
+        <span class="c1">#self.setFixedSize(600, 400)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">850</span><span class="p">,</span><span class="mi">400</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;SPeDE: Spectral Dereplication&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QIcon</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span><span class="s2">&quot;Media/Ghent_University_Temple&quot;</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_body</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_sub_windows</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_values</span><span class="p">()</span>
+
+    <span class="c1">#prepare all subwindows for future use</span>
+<div class="viewcode-block" id="Homescreen.init_sub_windows"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.init_sub_windows">[docs]</a>    <span class="k">def</span> <span class="nf">init_sub_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize all child windows of the Homescreen class.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">=</span><span class="n">WaitWindow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kill_process</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_input</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">ok_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">ok_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">reset_text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.init_values"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.init_values">[docs]</a>    <span class="k">def</span> <span class="nf">init_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize default values and inputs of the Homescreen class.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable_param_input</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle_load_config</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2">_%H_%M_%S_&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># Set all buttons needed on the main view of the program</span>
+<div class="viewcode-block" id="Homescreen.fill_body"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.fill_body">[docs]</a>    <span class="k">def</span> <span class="nf">fill_body</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make the body of the Homescreen class.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Make a grid structure</span>
+        <span class="n">main_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+
+        <span class="c1"># fill top part with required parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_upper_body</span><span class="p">(</span><span class="n">main_layout</span><span class="p">)</span>
+
+        <span class="c1"># fill bottom part with optional parameters + start/stop buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_bottom_body</span><span class="p">(</span><span class="n">main_layout</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.fill_upper_body"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.fill_upper_body">[docs]</a>    <span class="k">def</span> <span class="nf">fill_upper_body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main_layout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill the upper body of the Homescreen class.</span>
+
+<span class="sd">        :param main_layout: A container for all GUI elements</span>
+<span class="sd">        :type main_layout: QVBoxLayout</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#labels</span>
+
+        <span class="n">reserved_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Reserved text&quot;</span><span class="p">)</span>
+        <span class="n">folder_out_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Output directory&quot;</span><span class="p">)</span>
+        <span class="n">folder_out_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">proj_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Project directory&quot;</span><span class="p">)</span>
+        <span class="n">proj_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+
+        <span class="c1">#input fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="o">=</span><span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="o">=</span><span class="n">QLineEdit</span><span class="p">()</span>
+
+
+        <span class="c1">#picker buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_dir_pick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span><span class="o">.</span><span class="n">setMaximumWidth</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_dir_pick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span><span class="o">.</span><span class="n">setMaximumWidth</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
+        <span class="c1">#output buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">csv_rb</span> <span class="o">=</span> <span class="n">QRadioButton</span><span class="p">(</span><span class="s2">&quot;csv&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_rb</span> <span class="o">=</span> <span class="n">QRadioButton</span><span class="p">(</span><span class="s2">&quot;txt&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">csv_rb</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1">#couples</span>
+
+        <span class="n">proj_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">proj_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">proj_label</span><span class="p">)</span>
+        <span class="n">proj_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="p">)</span>
+        <span class="n">proj_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span><span class="p">)</span>
+
+        <span class="n">folder_out_box</span><span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">folder_out_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">folder_out_label</span><span class="p">)</span>
+        <span class="n">folder_out_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="p">)</span>
+        <span class="n">folder_out_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span><span class="p">)</span>
+
+
+        <span class="c1">##button group</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_group</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">csv_rb</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">txt_rb</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+
+        <span class="n">output_box</span> <span class="o">=</span> <span class="n">QGroupBox</span><span class="p">(</span><span class="s2">&quot;Output type&quot;</span><span class="p">)</span>
+        <span class="n">output_box</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">125</span><span class="p">)</span>
+        <span class="n">output_box</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="p">)</span>
+
+
+        <span class="c1">#Boxes</span>
+
+        <span class="c1">##top-explanation box</span>
+        <span class="n">explanation_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>  <span class="c1"># add some explanation text at the upper left part of the screen</span>
+        <span class="n">explanation_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">reserved_label</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignLeft</span><span class="p">)</span>
+
+        <span class="c1">##top-left box</span>
+        <span class="n">tl_box</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">tl_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">explanation_box</span><span class="p">)</span>
+        <span class="n">tl_box</span><span class="o">.</span><span class="n">addStretch</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)</span>
+        <span class="n">tl_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">proj_box</span><span class="p">)</span>
+        <span class="n">tl_box</span><span class="o">.</span><span class="n">addStretch</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">tl_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">folder_out_box</span><span class="p">)</span>
+        <span class="n">tl_box</span><span class="o">.</span><span class="n">addStretch</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="c1"># top right output box</span>
+        <span class="n">tr_box</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">tr_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">output_box</span><span class="p">)</span>
+
+        <span class="c1">##add all to upper box</span>
+        <span class="n">upper_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">upper_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">tl_box</span><span class="p">)</span>
+        <span class="n">upper_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">tr_box</span><span class="p">)</span>
+
+        <span class="c1"># add to main layout</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">upper_box</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.fill_bottom_body"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.fill_bottom_body">[docs]</a>    <span class="k">def</span> <span class="nf">fill_bottom_body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main_layout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill the bottom body of the Homescreen class.</span>
+
+<span class="sd">        :param main_layout: A container for all GUI elements</span>
+<span class="sd">        :type main_layout: QVBoxLayout</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Labels</span>
+        <span class="n">d_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Density&quot;</span><span class="p">)</span>
+        <span class="n">d_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">70</span><span class="p">)</span>
+        <span class="n">cl_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Cluster (%)&quot;</span><span class="p">)</span>
+        <span class="n">cl_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">70</span><span class="p">)</span>
+        <span class="n">l_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Local (%)&quot;</span><span class="p">)</span>
+        <span class="n">l_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">70</span><span class="p">)</span>
+        <span class="n">cu_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Cutoff (M/Z)&quot;</span><span class="p">)</span>
+        <span class="n">cu_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">70</span><span class="p">)</span>
+        <span class="n">def_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Default values&quot;</span><span class="p">)</span>
+        <span class="n">def_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">140</span><span class="p">)</span>
+        <span class="n">val_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Validation matrix&quot;</span><span class="p">)</span>
+        <span class="n">val_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">140</span><span class="p">)</span>
+        <span class="n">cop_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Copy unique references&quot;</span><span class="p">)</span>
+        <span class="n">cop_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">140</span><span class="p">)</span>
+        <span class="n">krona_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Krona output&quot;</span><span class="p">)</span>
+        <span class="n">krona_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">140</span><span class="p">)</span>
+        <span class="n">i_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Intervals&quot;</span><span class="p">)</span>
+        <span class="n">i_label</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">70</span><span class="p">)</span>
+
+
+
+        <span class="c1"># Input fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_input</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+
+
+        <span class="c1"># Buttons/checkboxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Start&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_start_processing</span><span class="p">)</span>  <span class="c1"># connect the exit button to the start event</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_input</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">exit_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Exit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="n">exit_button</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">exit_button</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">())</span>
+        <span class="n">exit_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">closeAllWindows</span><span class="p">)</span>  <span class="c1"># connect the exit button to an exit event</span>
+        <span class="n">config_load_button</span><span class="o">=</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Load config&quot;</span><span class="p">)</span>
+        <span class="n">config_load_button</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">config_load_button</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">())</span>
+        <span class="n">config_load_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_load_config</span><span class="p">)</span>
+        <span class="n">config_store_button</span><span class="o">=</span><span class="n">QPushButton</span><span class="p">(</span><span class="s1">&#39;Store config&#39;</span><span class="p">)</span>
+        <span class="n">config_store_button</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">config_store_button</span><span class="o">.</span><span class="n">sizeHint</span><span class="p">())</span>
+        <span class="n">config_store_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_store_config</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">=</span> <span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">stateChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_def_val_change</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">=</span><span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">=</span><span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">=</span><span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_picker</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_picker</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_file_pick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_picker</span><span class="o">.</span><span class="n">setMaximumWidth</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
+        <span class="c1">##couples</span>
+        <span class="n">d_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>  <span class="c1"># density</span>
+        <span class="n">d_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">d_label</span><span class="p">)</span>
+        <span class="n">d_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">density_input</span><span class="p">)</span>
+        <span class="n">cl_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>  <span class="c1"># cluster</span>
+        <span class="n">cl_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">cl_label</span><span class="p">)</span>
+        <span class="n">cl_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_input</span><span class="p">)</span>
+        <span class="n">l_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>  <span class="c1"># local</span>
+        <span class="n">l_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">l_label</span><span class="p">)</span>
+        <span class="n">l_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_input</span><span class="p">)</span>
+        <span class="n">cu_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>  <span class="c1"># cutoff</span>
+        <span class="n">cu_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">cu_label</span><span class="p">)</span>
+        <span class="n">cu_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cutoff_input</span><span class="p">)</span>
+        <span class="n">defb_box</span><span class="o">=</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">defb_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">def_label</span><span class="p">)</span>
+        <span class="n">defb_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="p">)</span>
+        <span class="n">valb_box</span><span class="o">=</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">valb_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">val_label</span><span class="p">)</span>
+        <span class="n">valb_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="p">)</span>
+        <span class="n">copb_box</span><span class="o">=</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">copb_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">cop_label</span><span class="p">)</span>
+        <span class="n">copb_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="p">)</span>
+        <span class="n">kronab_box</span><span class="o">=</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">kronab_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">krona_label</span><span class="p">)</span>
+        <span class="n">kronab_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="p">)</span>
+        <span class="n">i_box</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">i_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">i_label</span><span class="p">)</span>
+        <span class="n">i_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span><span class="p">)</span>
+        <span class="n">i_box</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">i_picker</span><span class="p">)</span>
+
+        <span class="c1">## Make vertical groupings</span>
+
+        <span class="c1">### Bottom input left</span>
+        <span class="n">bil_box</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">bil_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">d_box</span><span class="p">)</span>
+        <span class="n">bil_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">cl_box</span><span class="p">)</span>
+
+        <span class="c1">## Bottom input right</span>
+        <span class="n">bir_box</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">bir_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">l_box</span><span class="p">)</span>
+        <span class="n">bir_box</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">cu_box</span><span class="p">)</span>
+
+        <span class="c1">## Config buttons</span>
+        <span class="n">conf_buttons</span><span class="o">=</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">conf_buttons</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">config_load_button</span><span class="p">)</span>
+        <span class="n">conf_buttons</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">config_store_button</span><span class="p">)</span>
+
+        <span class="c1">## Process buttons</span>
+        <span class="n">proc_buttons</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">proc_buttons</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="p">)</span>
+        <span class="n">proc_buttons</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">exit_button</span><span class="p">)</span>
+
+
+        <span class="c1">## Check buttons right</span>
+        <span class="n">check_buttons</span><span class="o">=</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">check_buttons</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">valb_box</span><span class="p">)</span>
+        <span class="n">check_buttons</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">copb_box</span><span class="p">)</span>
+        <span class="n">check_buttons</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">defb_box</span><span class="p">)</span>
+        <span class="n">check_buttons</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">kronab_box</span><span class="p">)</span>
+
+
+        <span class="c1">#Default parameters</span>
+
+        <span class="c1">## Default values</span>
+        <span class="n">def_value_container</span><span class="o">=</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">def_value_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">bil_box</span><span class="p">)</span>
+        <span class="n">def_value_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">bir_box</span><span class="p">)</span>
+
+        <span class="c1">## (Intervals: i_box)</span>
+
+        <span class="n">param_container</span><span class="o">=</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">param_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">def_value_container</span><span class="p">)</span>
+        <span class="n">param_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">i_box</span><span class="p">)</span>
+
+
+        <span class="c1">#Add to main container</span>
+        <span class="n">bottom_container</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">bottom_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">conf_buttons</span><span class="p">)</span>
+        <span class="n">bottom_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">param_container</span><span class="p">)</span>
+        <span class="n">bottom_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">proc_buttons</span><span class="p">)</span>
+        <span class="n">bottom_container</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">check_buttons</span><span class="p">)</span>
+
+        <span class="c1"># Add the bottom grid to main layout</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">bottom_container</span><span class="p">)</span>
+
+        <span class="c1"># Set the main layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">main_layout</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Event handling</span>
+
+    <span class="c1"># Intercept the normal close event and ask for confirmation</span>
+<div class="viewcode-block" id="Homescreen.closeEvent"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.closeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">QCloseEvent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle a close event.</span>
+
+<span class="sd">        Any leftover processes must be killed and cleaned before exiting the program.</span>
+
+<span class="sd">        :param QCloseEvent: A QCloseEvent to be handled</span>
+<span class="sd">        :type QCloseEvent: QCloseEvent</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warning</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;Are you sure you want to exit?&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">warning</span> <span class="o">==</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+            <span class="n">QCloseEvent</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+            <span class="c1">#Clean any leftover processes and windows</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clean_subprocess</span><span class="p">(</span><span class="n">kill</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">QCloseEvent</span><span class="o">.</span><span class="n">ignore</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Homescreen.handle_start_processing"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_start_processing">[docs]</a>    <span class="k">def</span> <span class="nf">handle_start_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start processing the spectra.</span>
+
+<span class="sd">        This function must gather all config parameters of the GUI and present them to the SPeDE main function.</span>
+<span class="sd">        Parameter validation must happen here and any error must be handled accordingly. A Waiter Window must be called</span>
+<span class="sd">        to present to the user while processing is happening. The start button of the Homescreen window must be disabled</span>
+<span class="sd">        while processing to avoid duplicate work.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="c1">#Get all input parameters</span>
+        <span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_config_params</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">intervals</span><span class="p">,</span> <span class="n">projdir</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">krona</span> <span class="o">=</span><span class="n">params</span>
+
+
+        <span class="c1"># Validate input</span>
+
+        <span class="c1">## Check not empty</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_exist</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;Not all values are filled in.&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span>
+
+
+        <span class="c1">## Validate paths</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="n">intervals</span><span class="p">,</span><span class="n">projdir</span><span class="p">,</span><span class="n">output_directory</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">validate_path</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a valid path&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="p">),</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">return</span>
+
+
+        <span class="c1">## Validate values</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">density</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_parse_integer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a valid number&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="c1">#if all goes well</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">qApp</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="n">thread</span><span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">process_spectra</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span><span class="n">projdir</span><span class="p">,</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span><span class="n">cluster</span><span class="p">,</span><span class="n">local</span><span class="p">,</span><span class="n">cutoff</span><span class="p">,</span><span class="n">output_format</span><span class="p">,</span><span class="n">validation</span><span class="p">,</span><span class="n">copy</span><span class="p">,</span> <span class="n">krona</span><span class="p">))</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+    <span class="c1"># Pass arguments to processing module and start spectrum analysis</span>
+<div class="viewcode-block" id="Homescreen.process_spectra"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.process_spectra">[docs]</a>    <span class="k">def</span> <span class="nf">process_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">projdir</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">krona</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process the spectra in a worker thread.</span>
+
+<span class="sd">        All parameters are expected to be valid and sane. Any error arising from the called process should be handled here.</span>
+<span class="sd">        Clean the process after finishing.</span>
+
+<span class="sd">        :param intervals: Path to the intervals file.</span>
+<span class="sd">        :type intervals: str</span>
+<span class="sd">        :param projdir: Path to the project directory.</span>
+<span class="sd">        :type projdir: str</span>
+<span class="sd">        :param output_directory: Path to the output directory.</span>
+<span class="sd">        :type output_directory: str</span>
+<span class="sd">        :param density: The PPM threshold.</span>
+<span class="sd">        :type density: int</span>
+<span class="sd">        :param cluster: The PPVM cluster threshold in percentage.</span>
+<span class="sd">        :type cluster: int</span>
+<span class="sd">        :param local: The PPMC local threshold in percentage.</span>
+<span class="sd">        :type local: int</span>
+<span class="sd">        :param cutoff: The S/N cutoff in M/Z.</span>
+<span class="sd">        :type cutoff: int</span>
+<span class="sd">        :param output_format: Output format of the spectra.</span>
+<span class="sd">        :type output_format: str</span>
+<span class="sd">        :param validation: Print the validation matrix.</span>
+<span class="sd">        :type validation: bool</span>
+<span class="sd">        :param copy: True if you want to copy the unique references to a subfolder.</span>
+<span class="sd">        :type copy: bool</span>
+<span class="sd">        :param krona: True if you want to generate a ready-to-go krona output file.</span>
+<span class="sd">        :type krona: bool</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">arguments</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;intervals&quot;</span><span class="p">:</span> <span class="n">intervals</span><span class="p">,</span> <span class="s2">&quot;project_directory&quot;</span><span class="p">:</span> <span class="n">projdir</span><span class="p">,</span> <span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="n">output_directory</span><span class="p">,</span>
+                   <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="n">density</span><span class="p">,</span> <span class="s2">&quot;cluster&quot;</span><span class="p">:</span><span class="n">cluster</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">:</span><span class="n">local</span><span class="p">,</span> <span class="s2">&quot;cutoff&quot;</span><span class="p">:</span> <span class="n">cutoff</span><span class="p">,</span> <span class="s2">&quot;output_format&quot;</span><span class="p">:</span> <span class="n">output_format</span><span class="p">,</span>
+                   <span class="s2">&quot;validate&quot;</span><span class="p">:</span> <span class="n">validation</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">,</span> <span class="s2">&quot;validation_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_validation_name</span><span class="p">,</span>
+                   <span class="s2">&quot;peaks&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_peaks</span><span class="p">,</span> <span class="s2">&quot;affix&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="p">,</span> <span class="s2">&quot;copy&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">,</span> <span class="s2">&quot;krona&quot;</span><span class="p">:</span> <span class="n">krona</span><span class="p">}</span>
+
+        <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span><span class="n">projdir</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_peaks</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_validation_name</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">,</span> <span class="n">output_format</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">krona</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_args</span><span class="o">=</span><span class="n">arguments</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span>
+        <span class="n">argdict</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="n">err_queue</span><span class="o">=</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="n">argdict</span><span class="p">[</span><span class="s2">&quot;queue&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">err_queue</span>
+        <span class="n">argdict</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">SPeDE_wrapper</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">argdict</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">err_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="c1">#an error occurred</span>
+                <span class="n">error</span><span class="o">=</span> <span class="n">err_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">message</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+                <span class="n">handler</span><span class="o">=</span><span class="n">ProcessedEvent</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_process_finished</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">handler</span><span class="o">=</span><span class="n">ProcessedEvent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_process_finished</span><span class="p">)</span>
+
+            <span class="n">handler</span><span class="o">.</span><span class="n">handle_signal</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clean_subprocess</span><span class="p">()</span></div>
+
+    <span class="c1">#Start a file picker</span>
+<div class="viewcode-block" id="Homescreen.handle_file_pick"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_file_pick">[docs]</a>    <span class="k">def</span> <span class="nf">handle_file_pick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a file picker, set the result in `input_field.`</span>
+
+<span class="sd">        :param input_field: The field in which the picked file-name must be placed.</span>
+<span class="sd">        :type input_field: QLineEdit</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Select file&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">input_field</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+    <span class="c1">#Start a directory picker</span>
+<div class="viewcode-block" id="Homescreen.handle_dir_pick"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_dir_pick">[docs]</a>    <span class="k">def</span> <span class="nf">handle_dir_pick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a directory picker, set the result in `input_field.`</span>
+
+<span class="sd">        :param input_field: The field in which the picked directory-name must be placed.</span>
+<span class="sd">        :type input_field: QLineEdit</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="o">.</span><span class="n">getExistingDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Select Directory&quot;</span><span class="p">)</span>
+        <span class="n">input_field</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+    <span class="c1">##processing finished</span>
+<div class="viewcode-block" id="Homescreen.handle_process_finished"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_process_finished">[docs]</a>    <span class="k">def</span> <span class="nf">handle_process_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">killed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle the finishing of the spectrum processing process.</span>
+
+<span class="sd">        This handler must be called when the process is done processing the spectra. Depending on the outcome of the</span>
+<span class="sd">        process, set a message in the Waiter window. The message to be set is decided on by the passed parameters.</span>
+
+<span class="sd">        :param killed: True if the process was killed abruptly.</span>
+<span class="sd">        :type killed: bool</span>
+<span class="sd">        :param error: True if an error occurred while processing.</span>
+<span class="sd">        :type error: bool</span>
+<span class="sd">        :param message: An additional message to be set in the Waiter window</span>
+<span class="sd">        :type message: str</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">killed</span><span class="p">:</span> <span class="c1">#abrupt ending of processing</span>
+            <span class="n">text</span><span class="o">+=</span><span class="s2">&quot;Processing aborted.&quot;</span>
+        <span class="k">elif</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">text</span><span class="o">+=</span><span class="s2">&quot;An error occured:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">text</span><span class="o">+=</span><span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1">#processing finished normally</span>
+            <span class="n">text</span><span class="o">+=</span><span class="s2">&quot;Data processing finished.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">text</span><span class="o">+=</span><span class="s2">&quot;Output written to </span><span class="se">\n</span><span class="si">{2}{0}</span><span class="s2">.</span><span class="si">{1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_extension</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                <span class="n">text</span><span class="o">+=</span> <span class="s2">&quot;Validation matrix written to </span><span class="se">\n</span><span class="si">{0}{1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_validation_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                <span class="n">text</span><span class="o">+=</span> <span class="s2">&quot;Unique references copied to subfolder</span><span class="se">\n</span><span class="si">{0}</span><span class="s2">References</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                <span class="n">text</span><span class="o">+=</span><span class="s2">&quot;Krona output written to </span><span class="se">\n</span><span class="si">{0}{1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">affix</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">out_krona_name</span><span class="p">)</span>
+
+
+        <span class="c1">#Let the window jump back to the front #todo: bad code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">to_front</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">set_ok_button</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">waiter</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.handle_def_val_change"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_def_val_change">[docs]</a>    <span class="k">def</span> <span class="nf">handle_def_val_change</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disable or enable parameter input.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">enable_param_input</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_load_config</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">enable_param_input</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.handle_load_config"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_load_config">[docs]</a>    <span class="k">def</span> <span class="nf">handle_load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">load_default</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle how the loading of a .yaml configuration file should happen.</span>
+
+<span class="sd">        Values are assumed to not throw errors when read or put into their respective fields.</span>
+
+<span class="sd">        :param load_default: True if the default configuration file should be loaded.</span>
+<span class="sd">        :type load_default: bool</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">load_default</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Select file&quot;</span><span class="p">,</span><span class="nb">filter</span><span class="o">=</span><span class="s2">&quot;*.yaml&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">DEVELOP</span><span class="p">:</span>
+                <span class="n">filename</span><span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="s2">&quot;default_config_develop.yaml&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_value_filename</span><span class="p">)):</span>
+                    <span class="n">filename</span><span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_value_filename</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="c1">#if nothing was chosen: exit</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">warning</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="s2">&quot;File </span><span class="si">{0}</span><span class="s2"> unavailable.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">params</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+
+        <span class="c1">#make dictionary mapping names to items</span>
+        <span class="n">func_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;intervals&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_intervals</span><span class="p">,</span> <span class="s2">&quot;project_directory&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_proj_dir</span><span class="p">,</span>
+                     <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_density</span><span class="p">,</span> <span class="s2">&quot;cluster&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_cluster</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_local</span><span class="p">,</span>
+                     <span class="s2">&quot;cutoff&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_cutoff</span><span class="p">,</span> <span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_output_directory</span><span class="p">}</span>
+
+        <span class="c1">#set all parameters</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">func_dict</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">v</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.handle_store_config"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_store_config">[docs]</a>    <span class="k">def</span> <span class="nf">handle_store_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle the storing of parameters in a configuration .yaml file.</span>
+
+<span class="sd">        Semantically wrong values can be stored into a configuration file only after confirming with the user. Values</span>
+<span class="sd">        shoud still be syntactically correct as they shouldn&#39;t produce error when being loaded. Empty field can&#39;t be</span>
+<span class="sd">        stored in the configuration file. Otherwise, values could be accidentally overridden when these are loaded.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">param_dict</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_config_params</span><span class="p">()</span>
+        <span class="n">param_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;validation&quot;</span><span class="p">)</span>
+        <span class="n">param_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;output_type&quot;</span><span class="p">)</span>
+        <span class="n">param_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;copy&quot;</span><span class="p">)</span>
+        <span class="n">param_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;krona&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">=</span><span class="n">param_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">intervals</span><span class="p">,</span> <span class="n">projdir</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">param_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+        <span class="n">print_anyway</span><span class="o">=</span><span class="kc">False</span>
+
+        <span class="c1"># Validate input</span>
+        <span class="c1">##Validate not empty</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_exist</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+            <span class="n">answer</span><span class="o">=</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;Not all values are filled in, continue anyway?&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">answer</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+                <span class="n">print_anyway</span><span class="o">=</span><span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">answer</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">:</span>
+                <span class="k">return</span>
+
+
+        <span class="c1">## Validate paths</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="n">intervals</span><span class="p">,</span> <span class="n">projdir</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">print_anyway</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validate_path</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+                <span class="n">answer</span><span class="o">=</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">is not a valid path, continue anyway?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="p">),</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">YesToAll</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">answer</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">YesToAll</span><span class="p">:</span>
+                    <span class="n">print_anyway</span><span class="o">=</span><span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">answer</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">:</span>
+                    <span class="k">return</span>
+
+        <span class="c1">## Validate values</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">density</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">print_anyway</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_parse_integer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">answer</span><span class="o">=</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a valid number, continue anyway?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">YesToAll</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">answer</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">YesToAll</span><span class="p">:</span>
+                    <span class="n">print_anyway</span><span class="o">=</span><span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">answer</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">:</span>
+                    <span class="k">return</span>
+
+
+        <span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;Save File&#39;</span><span class="p">,</span><span class="nb">filter</span><span class="o">=</span><span class="s2">&quot;*.yaml&quot;</span><span class="p">))</span>
+
+        <span class="c1"># if nothing was chosen: exit</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># correct the name if necessary</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span><span class="o">==</span><span class="s2">&quot;.yaml&quot;</span> <span class="k">else</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">warning</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="s2">&quot;File </span><span class="si">{0}</span><span class="s2"> unavailable, exiting.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1">#remove empty fields</span>
+        <span class="n">to_remove</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">param_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">:</span>
+            <span class="n">param_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Homescreen.handle_error"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.handle_error">[docs]</a>    <span class="k">def</span> <span class="nf">handle_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle errors generated by the spectrum process.</span>
+
+<span class="sd">        Additional error handling should be implemented here. As the error is a string message, error handling happens</span>
+<span class="sd">        by checking for substrings.</span>
+
+<span class="sd">        :param error: The error thrown by the spectrum process.</span>
+<span class="sd">        :type error: str</span>
+<span class="sd">        :return: (str) A message to be shown in the waiter window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#data missing error</span>
+        <span class="k">if</span> <span class="s2">&quot;raise DataMissing()&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+            <span class="n">message</span> <span class="o">=</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="s2">The project directory has no valid spectra.&quot;</span>
+        <span class="k">elif</span> <span class="s2">&quot;raise IOError&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+            <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="s2">Please make sure all output files are closed </span><span class="se">\n</span><span class="s2">before starting the program.&quot;</span>
+        <span class="k">elif</span> <span class="s2">&quot;raise NameMapMissing()&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+            <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="s2">The project directory has no QualityControlledDBFields files.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">message</span><span class="o">=</span> <span class="s2">&quot;An unknown error has occurred,</span><span class="se">\n</span><span class="s2">see err.txt for details.&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">err</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;err.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span>
+                <span class="n">err</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Input arguments:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_args</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">err</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+                <span class="n">err</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="n">warning</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Critical&quot;</span><span class="p">,</span> <span class="s2">&quot;err.txt unavailable, exiting&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+                <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">message</span></div>
+
+
+    <span class="c1">#Data validation</span>
+<div class="viewcode-block" id="Homescreen.validate_and_parse_integer"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.validate_and_parse_integer">[docs]</a>    <span class="k">def</span> <span class="nf">validate_and_parse_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validate the input and return it as an int if validation is successful.</span>
+
+<span class="sd">        :param value: Value to be validated as int</span>
+<span class="sd">        :type value: str</span>
+<span class="sd">        :raise AssertionError: when an empty str is given</span>
+<span class="sd">        :raise Exception: when `value` can&#39;t be cast to an int</span>
+<span class="sd">        :return: value cast to an integer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">res</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span></div>
+
+<div class="viewcode-block" id="Homescreen.validate_path"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.validate_path">[docs]</a>    <span class="k">def</span> <span class="nf">validate_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if `path` exists.</span>
+
+<span class="sd">        :param path: parameter to be validated</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :raise AssertionError: when `path` does not exist</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span></div>
+
+<div class="viewcode-block" id="Homescreen.all_exist"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.all_exist">[docs]</a>    <span class="k">def</span> <span class="nf">all_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_array</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if none of the elements in param_array is the empty string.</span>
+
+<span class="sd">        :param param_array: parameter array to be checked</span>
+<span class="sd">        :type param_array: array[str]</span>
+<span class="sd">        :return: True if none of the elements in param_array is the empty string, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">param_array</span><span class="p">:</span>
+           <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+               <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="c1">#Help functions</span>
+
+<div class="viewcode-block" id="Homescreen.kill_process"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.kill_process">[docs]</a>    <span class="k">def</span> <span class="nf">kill_process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Kill the ongoing process if there is one.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">message</span><span class="o">=</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Abort&quot;</span><span class="p">,</span> <span class="s2">&quot;Are you sure you want to abort processing?&quot;</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">message</span><span class="o">==</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clean_subprocess</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_process_finished</span><span class="p">(</span><span class="n">killed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.enable_param_input"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.enable_param_input">[docs]</a>    <span class="k">def</span> <span class="nf">enable_param_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_bool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable or disable parameter input.</span>
+
+<span class="sd">        :param my_bool: True if parameter input is enabled.</span>
+<span class="sd">        :type my_bool: bool</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">my_bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">my_bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">my_bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">my_bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">my_bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_picker</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">my_bool</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.enable_input"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.enable_input">[docs]</a>    <span class="k">def</span> <span class="nf">enable_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">my_bool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">csv_rb</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">txt_rb</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span> <span class="c1">#also disable param input</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">enable_param_input</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proj_picker</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder_out_picker</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">csv_rb</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">txt_rb</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">def_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span> <span class="c1">#also enable param input</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">enable_param_input</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="Homescreen.center"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.center">[docs]</a>    <span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Center self.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">geo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameGeometry</span><span class="p">()</span>
+        <span class="n">screen_center</span> <span class="o">=</span> <span class="n">QDesktopWidget</span><span class="p">()</span><span class="o">.</span><span class="n">availableGeometry</span><span class="p">()</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+        <span class="n">geo</span><span class="o">.</span><span class="n">moveCenter</span><span class="p">(</span><span class="n">screen_center</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">geo</span><span class="o">.</span><span class="n">topLeft</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Homescreen.clean_subprocess"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.clean_subprocess">[docs]</a>    <span class="k">def</span> <span class="nf">clean_subprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kill</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the currently assigned spectrum process.</span>
+
+<span class="sd">        :param kill: True if the process should also be killed.</span>
+<span class="sd">        :type kill: bool</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">kill</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process</span><span class="o">=</span><span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_process_args</span><span class="o">=</span><span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Homescreen.get_config_params"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.get_config_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_config_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return all config values.</span>
+
+<span class="sd">        :return: A dict with all config values and keys: intervals (str), project_directory (str), output_directory (str), density (str), cluster (str), local (str), cutoff (str), validation (bool), output_type (str)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">intervals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">project_directory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">output_directory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">density</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">density_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">cluster</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">local</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">local_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">cutoff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cutoff_input</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+        <span class="n">validation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">val_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="n">copy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cop_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="n">krona</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">krona_button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+        <span class="n">output_type</span><span class="o">=</span><span class="kc">None</span>
+
+
+        <span class="n">buttons</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">.</span><span class="n">itemAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">widget</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">.</span><span class="n">count</span><span class="p">()))</span>
+        <span class="k">for</span> <span class="n">button</span> <span class="ow">in</span> <span class="n">buttons</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                <span class="n">output_type</span><span class="o">=</span><span class="n">button</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                <span class="k">break</span>
+
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;intervals&quot;</span><span class="p">,</span> <span class="s2">&quot;project_directory&quot;</span><span class="p">,</span> <span class="s2">&quot;output_directory&quot;</span><span class="p">,</span> <span class="s2">&quot;density&quot;</span><span class="p">,</span> <span class="s2">&quot;cluster&quot;</span><span class="p">,</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="s2">&quot;cutoff&quot;</span><span class="p">,</span> <span class="s2">&quot;validation&quot;</span><span class="p">,</span> <span class="s2">&quot;output_type&quot;</span><span class="p">,</span> <span class="s2">&quot;copy&quot;</span><span class="p">,</span> <span class="s2">&quot;krona&quot;</span><span class="p">]</span>
+
+        <span class="n">res</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="c1"># add all to dictionary</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="Homescreen.get_output_extension"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.get_output_extension">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_extension</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the output extension without &quot;.&quot; (e.g. txt)</span>
+
+<span class="sd">        :return: (str) The output extension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">buttons</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">.</span><span class="n">itemAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">widget</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_group</span><span class="o">.</span><span class="n">count</span><span class="p">()))</span>
+        <span class="k">for</span> <span class="n">button</span> <span class="ow">in</span> <span class="n">buttons</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">button</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">button</span><span class="o">.</span><span class="n">text</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_density"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_density">[docs]</a>    <span class="k">def</span> <span class="nf">set_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">density_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">density_n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_cluster"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">set_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cluster_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">cluster_n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_local"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_local">[docs]</a>    <span class="k">def</span> <span class="nf">set_local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">local_n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_cutoff"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_cutoff">[docs]</a>    <span class="k">def</span> <span class="nf">set_cutoff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cutoff_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">cutoff_n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_intervals"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_intervals">[docs]</a>    <span class="k">def</span> <span class="nf">set_intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intervals_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">intervals_n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_proj_dir"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_proj_dir">[docs]</a>    <span class="k">def</span> <span class="nf">set_proj_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proj_dir_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_directory_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">proj_dir_n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Homescreen.set_output_directory"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.Homescreen.set_output_directory">[docs]</a>    <span class="k">def</span> <span class="nf">set_output_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir_n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory_input</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">output_dir_n</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="WaitWindow"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow">[docs]</a><span class="k">class</span> <span class="nc">WaitWindow</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A window that is shown when the user wait for data to be processed.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">abort_handler</span><span class="p">,</span> <span class="n">ok_handler</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a waiter window.</span>
+
+<span class="sd">        :param abort_handler: A handler called when the abort button is clicked.</span>
+<span class="sd">        :type abort_handler: function_pointer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abort_button</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_label</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abort_handler</span><span class="o">=</span><span class="n">abort_handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_hanlder</span><span class="o">=</span><span class="n">ok_handler</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFixedSize</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Processing&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QIcon</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span><span class="s2">&quot;Media/Ghent_University_Temple&quot;</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_body</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">()</span> <span class="o">|</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">CustomizeWindowHint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowFlags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">windowFlags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowCloseButtonHint</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WaitWindow.fill_body"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.fill_body">[docs]</a>    <span class="k">def</span> <span class="nf">fill_body</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill the body of the WaitWindow Class.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#body</span>
+        <span class="n">main_layout</span><span class="o">=</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+
+        <span class="c1">#label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_label</span><span class="o">=</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Data is being processed&quot;</span><span class="p">)</span>
+
+        <span class="c1">#buttons</span>
+
+        <span class="c1">##Abort button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abort_button</span><span class="o">=</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Abort&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abort_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_abort</span><span class="p">)</span>
+
+
+        <span class="c1">##ok_button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="o">=</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_ok</span><span class="p">)</span>
+
+        <span class="c1">#Group buttons</span>
+        <span class="n">bbox</span><span class="o">=</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">bbox</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="p">)</span>
+        <span class="n">bbox</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abort_button</span><span class="p">)</span>
+
+        <span class="c1">#Add everything</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_label</span><span class="p">,</span><span class="n">alignment</span><span class="o">=</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+        <span class="n">main_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">main_layout</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WaitWindow.center"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.center">[docs]</a>    <span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Center self.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">geo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameGeometry</span><span class="p">()</span>
+        <span class="n">screen_center</span> <span class="o">=</span> <span class="n">QDesktopWidget</span><span class="p">()</span><span class="o">.</span><span class="n">availableGeometry</span><span class="p">()</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+        <span class="n">geo</span><span class="o">.</span><span class="n">moveCenter</span><span class="p">(</span><span class="n">screen_center</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">geo</span><span class="o">.</span><span class="n">topLeft</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="WaitWindow.set_ok_button"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.set_ok_button">[docs]</a>    <span class="k">def</span> <span class="nf">set_ok_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enabled</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disable or enable the ok button.</span>
+
+<span class="sd">        :param enabled: True if the ok button should be enabled.</span>
+<span class="sd">        :type enabled: bool</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WaitWindow.set_text"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.set_text">[docs]</a>    <span class="k">def</span> <span class="nf">set_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">new_text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WaitWindow.reset_text"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.reset_text">[docs]</a>    <span class="k">def</span> <span class="nf">reset_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset the text of the waiter window.</span>
+
+<span class="sd">        Reset the text to &quot;Data is being processed&quot;.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Data is being processed&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WaitWindow.to_front"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.to_front">[docs]</a>    <span class="k">def</span> <span class="nf">to_front</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Raise self to front.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span></div>
+
+    <span class="c1"># Event handling</span>
+<div class="viewcode-block" id="WaitWindow.handle_ok"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.handle_ok">[docs]</a>    <span class="k">def</span> <span class="nf">handle_ok</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle a click on the ok button.</span>
+
+<span class="sd">        Disable the ok button and close the waiter window.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ok_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">handler</span><span class="o">=</span><span class="n">ProcessedEvent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ok_hanlder</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">handle_signal</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="WaitWindow.handle_abort"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.WaitWindow.handle_abort">[docs]</a>    <span class="k">def</span> <span class="nf">handle_abort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute the abort handler attribute.</span>
+
+<span class="sd">        :return: Type of `abort_handler`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kill_process</span><span class="o">=</span><span class="n">ProcessedEvent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">abort_handler</span><span class="p">)</span>
+        <span class="n">kill_process</span><span class="o">.</span><span class="n">handle_signal</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="ProcessedEvent"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.ProcessedEvent">[docs]</a><span class="k">class</span> <span class="nc">ProcessedEvent</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A Class for cross thread and process communication.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpointer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a ProcessedEvent instance.</span>
+
+<span class="sd">        :param fpointer: A function pointer to be executed when handle_signal is called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processed</span><span class="o">=</span><span class="n">pyqtSignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fpointer</span><span class="o">=</span><span class="n">fpointer</span>
+
+<div class="viewcode-block" id="ProcessedEvent.signal"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.ProcessedEvent.signal">[docs]</a>    <span class="k">def</span> <span class="nf">signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ProcessedEvent.handle_signal"><a class="viewcode-back" href="../../GUI.html#GUI.GSPeDE.ProcessedEvent.handle_signal">[docs]</a>    <span class="nd">@pyqtSlot</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">handle_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fpointer</span><span class="p">()</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">SPeDE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GUI.html">GUI package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Spectrum_Processing.html">Spectrum_Processing package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vandamme Tim.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

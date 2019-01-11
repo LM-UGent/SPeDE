@@ -1,0 +1,728 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GUI package &#8212; SPeDE  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Spectrum_Processing package" href="Spectrum_Processing.html" />
+    <link rel="prev" title="Welcome to SPeDE’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="gui-package">
+<h1>GUI package<a class="headerlink" href="#gui-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-GUI.GSPeDE">
+<span id="gui-gspede-module"></span><h2>GUI.GSPeDE module<a class="headerlink" href="#module-GUI.GSPeDE" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="GUI.GSPeDE.Homescreen">
+<em class="property">class </em><code class="descclassname">GUI.GSPeDE.</code><code class="descname">Homescreen</code><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Main window of the GSPeDE application.</p>
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.all_exist">
+<code class="descname">all_exist</code><span class="sig-paren">(</span><em>param_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.all_exist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.all_exist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if none of the elements in param_array is the empty string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>param_array</strong> (<em>array</em><em>[</em><em>str</em><em>]</em>) – parameter array to be checked</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if none of the elements in param_array is the empty string, False otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.center">
+<code class="descname">center</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Center self.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.clean_subprocess">
+<code class="descname">clean_subprocess</code><span class="sig-paren">(</span><em>kill=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.clean_subprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.clean_subprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the currently assigned spectrum process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kill</strong> (<em>bool</em>) – True if the process should also be killed.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.closeEvent">
+<code class="descname">closeEvent</code><span class="sig-paren">(</span><em>QCloseEvent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle a close event.</p>
+<p>Any leftover processes must be killed and cleaned before exiting the program.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>QCloseEvent</strong> (<em>QCloseEvent</em>) – A QCloseEvent to be handled</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.enable_input">
+<code class="descname">enable_input</code><span class="sig-paren">(</span><em>my_bool</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.enable_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.enable_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.enable_param_input">
+<code class="descname">enable_param_input</code><span class="sig-paren">(</span><em>my_bool</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.enable_param_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.enable_param_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable or disable parameter input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>my_bool</strong> (<em>bool</em>) – True if parameter input is enabled.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.fill_body">
+<code class="descname">fill_body</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.fill_body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.fill_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the body of the Homescreen class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.fill_bottom_body">
+<code class="descname">fill_bottom_body</code><span class="sig-paren">(</span><em>main_layout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.fill_bottom_body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.fill_bottom_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the bottom body of the Homescreen class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>main_layout</strong> (<em>QVBoxLayout</em>) – A container for all GUI elements</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.fill_upper_body">
+<code class="descname">fill_upper_body</code><span class="sig-paren">(</span><em>main_layout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.fill_upper_body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.fill_upper_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the upper body of the Homescreen class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>main_layout</strong> (<em>QVBoxLayout</em>) – A container for all GUI elements</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.get_config_params">
+<code class="descname">get_config_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.get_config_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.get_config_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all config values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dict with all config values and keys: intervals (str), project_directory (str), output_directory (str), density (str), cluster (str), local (str), cutoff (str), validation (bool), output_type (str)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.get_output_extension">
+<code class="descname">get_output_extension</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.get_output_extension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.get_output_extension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the output extension without “.” (e.g. txt)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(str) The output extension.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_def_val_change">
+<code class="descname">handle_def_val_change</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_def_val_change"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_def_val_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable or enable parameter input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_dir_pick">
+<code class="descname">handle_dir_pick</code><span class="sig-paren">(</span><em>input_field</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_dir_pick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_dir_pick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a directory picker, set the result in <cite>input_field.</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_field</strong> (<em>QLineEdit</em>) – The field in which the picked directory-name must be placed.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_error">
+<code class="descname">handle_error</code><span class="sig-paren">(</span><em>error</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle errors generated by the spectrum process.</p>
+<p>Additional error handling should be implemented here. As the error is a string message, error handling happens
+by checking for substrings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>error</strong> (<em>str</em>) – The error thrown by the spectrum process.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(str) A message to be shown in the waiter window.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_file_pick">
+<code class="descname">handle_file_pick</code><span class="sig-paren">(</span><em>input_field</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_file_pick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_file_pick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a file picker, set the result in <cite>input_field.</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_field</strong> (<em>QLineEdit</em>) – The field in which the picked file-name must be placed.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_load_config">
+<code class="descname">handle_load_config</code><span class="sig-paren">(</span><em>load_default</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_load_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle how the loading of a .yaml configuration file should happen.</p>
+<p>Values are assumed to not throw errors when read or put into their respective fields.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>load_default</strong> (<em>bool</em>) – True if the default configuration file should be loaded.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_process_finished">
+<code class="descname">handle_process_finished</code><span class="sig-paren">(</span><em>killed=False</em>, <em>error=False</em>, <em>message=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_process_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_process_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the finishing of the spectrum processing process.</p>
+<p>This handler must be called when the process is done processing the spectra. Depending on the outcome of the
+process, set a message in the Waiter window. The message to be set is decided on by the passed parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>killed</strong> (<em>bool</em>) – True if the process was killed abruptly.</li>
+<li><strong>error</strong> (<em>bool</em>) – True if an error occurred while processing.</li>
+<li><strong>message</strong> (<em>str</em>) – An additional message to be set in the Waiter window</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_start_processing">
+<code class="descname">handle_start_processing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_start_processing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_start_processing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start processing the spectra.</p>
+<p>This function must gather all config parameters of the GUI and present them to the SPeDE main function.
+Parameter validation must happen here and any error must be handled accordingly. A Waiter Window must be called
+to present to the user while processing is happening. The start button of the Homescreen window must be disabled
+while processing to avoid duplicate work.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.handle_store_config">
+<code class="descname">handle_store_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.handle_store_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.handle_store_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the storing of parameters in a configuration .yaml file.</p>
+<p>Semantically wrong values can be stored into a configuration file only after confirming with the user. Values
+shoud still be syntactically correct as they shouldn’t produce error when being loaded. Empty field can’t be
+stored in the configuration file. Otherwise, values could be accidentally overridden when these are loaded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.init_sub_windows">
+<code class="descname">init_sub_windows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.init_sub_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.init_sub_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize all child windows of the Homescreen class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.init_values">
+<code class="descname">init_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.init_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.init_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize default values and inputs of the Homescreen class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.kill_process">
+<code class="descname">kill_process</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.kill_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.kill_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kill the ongoing process if there is one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.process_spectra">
+<code class="descname">process_spectra</code><span class="sig-paren">(</span><em>intervals</em>, <em>projdir</em>, <em>output_directory</em>, <em>density</em>, <em>cluster</em>, <em>local</em>, <em>cutoff</em>, <em>output_format</em>, <em>validation</em>, <em>copy</em>, <em>krona</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.process_spectra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.process_spectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the spectra in a worker thread.</p>
+<p>All parameters are expected to be valid and sane. Any error arising from the called process should be handled here.
+Clean the process after finishing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>intervals</strong> (<em>str</em>) – Path to the intervals file.</li>
+<li><strong>projdir</strong> (<em>str</em>) – Path to the project directory.</li>
+<li><strong>output_directory</strong> (<em>str</em>) – Path to the output directory.</li>
+<li><strong>density</strong> (<em>int</em>) – The PPM threshold.</li>
+<li><strong>cluster</strong> (<em>int</em>) – The PPVM cluster threshold in percentage.</li>
+<li><strong>local</strong> (<em>int</em>) – The PPMC local threshold in percentage.</li>
+<li><strong>cutoff</strong> (<em>int</em>) – The S/N cutoff in M/Z.</li>
+<li><strong>output_format</strong> (<em>str</em>) – Output format of the spectra.</li>
+<li><strong>validation</strong> (<em>bool</em>) – Print the validation matrix.</li>
+<li><strong>copy</strong> (<em>bool</em>) – True if you want to copy the unique references to a subfolder.</li>
+<li><strong>krona</strong> (<em>bool</em>) – True if you want to generate a ready-to-go krona output file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">void</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_cluster">
+<code class="descname">set_cluster</code><span class="sig-paren">(</span><em>cluster_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_cluster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_cutoff">
+<code class="descname">set_cutoff</code><span class="sig-paren">(</span><em>cutoff_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_cutoff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_density">
+<code class="descname">set_density</code><span class="sig-paren">(</span><em>density_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_density" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_intervals">
+<code class="descname">set_intervals</code><span class="sig-paren">(</span><em>intervals_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_intervals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_intervals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_local">
+<code class="descname">set_local</code><span class="sig-paren">(</span><em>local_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_local"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_local" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_output_directory">
+<code class="descname">set_output_directory</code><span class="sig-paren">(</span><em>output_dir_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_output_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_output_directory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.set_proj_dir">
+<code class="descname">set_proj_dir</code><span class="sig-paren">(</span><em>proj_dir_n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.set_proj_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.set_proj_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.validate_and_parse_integer">
+<code class="descname">validate_and_parse_integer</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.validate_and_parse_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.validate_and_parse_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the input and return it as an int if validation is successful.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>value</strong> (<em>str</em>) – Value to be validated as int</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first simple">
+<li><strong>AssertionError</strong> – when an empty str is given</li>
+<li><strong>Exception</strong> – when <cite>value</cite> can’t be cast to an int</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">value cast to an integer</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.Homescreen.validate_path">
+<code class="descname">validate_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#Homescreen.validate_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.Homescreen.validate_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if <cite>path</cite> exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – parameter to be validated</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><strong>AssertionError</strong> – when <cite>path</cite> does not exist</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="GUI.GSPeDE.ProcessedEvent">
+<em class="property">class </em><code class="descclassname">GUI.GSPeDE.</code><code class="descname">ProcessedEvent</code><span class="sig-paren">(</span><em>fpointer</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#ProcessedEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.ProcessedEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A Class for cross thread and process communication.</p>
+<p>Make a ProcessedEvent instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fpointer</strong> – A function pointer to be executed when handle_signal is called.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="GUI.GSPeDE.ProcessedEvent.handle_signal">
+<code class="descname">handle_signal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#ProcessedEvent.handle_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.ProcessedEvent.handle_signal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.ProcessedEvent.signal">
+<code class="descname">signal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#ProcessedEvent.signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.ProcessedEvent.signal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="GUI.GSPeDE.WaitWindow">
+<em class="property">class </em><code class="descclassname">GUI.GSPeDE.</code><code class="descname">WaitWindow</code><span class="sig-paren">(</span><em>abort_handler</em>, <em>ok_handler</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>A window that is shown when the user wait for data to be processed.</p>
+<p>Make a waiter window.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>abort_handler</strong> (<em>function_pointer</em>) – A handler called when the abort button is clicked.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.center">
+<code class="descname">center</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Center self.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.fill_body">
+<code class="descname">fill_body</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.fill_body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.fill_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill the body of the WaitWindow Class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.handle_abort">
+<code class="descname">handle_abort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.handle_abort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.handle_abort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the abort handler attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Type of <cite>abort_handler</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.handle_ok">
+<code class="descname">handle_ok</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.handle_ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.handle_ok" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle a click on the ok button.</p>
+<p>Disable the ok button and close the waiter window.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.reset_text">
+<code class="descname">reset_text</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.reset_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.reset_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the text of the waiter window.</p>
+<p>Reset the text to “Data is being processed”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.set_ok_button">
+<code class="descname">set_ok_button</code><span class="sig-paren">(</span><em>enabled</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.set_ok_button"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.set_ok_button" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable or enable the ok button.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>enabled</strong> (<em>bool</em>) – True if the ok button should be enabled.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.set_text">
+<code class="descname">set_text</code><span class="sig-paren">(</span><em>new_text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.set_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.set_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="GUI.GSPeDE.WaitWindow.to_front">
+<code class="descname">to_front</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#WaitWindow.to_front"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.WaitWindow.to_front" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise self to front.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">void</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="GUI.GSPeDE.main">
+<code class="descclassname">GUI.GSPeDE.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/GUI/GSPeDE.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#GUI.GSPeDE.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-GUI">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-GUI" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">SPeDE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">GUI package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-GUI.GSPeDE">GUI.GSPeDE module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-GUI">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Spectrum_Processing.html">Spectrum_Processing package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to SPeDE’s documentation!</a></li>
+      <li>Next: <a href="Spectrum_Processing.html" title="next chapter">Spectrum_Processing package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vandamme Tim.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/GUI.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

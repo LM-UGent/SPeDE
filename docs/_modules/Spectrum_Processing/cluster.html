@@ -1,0 +1,306 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spectrum_Processing.cluster &#8212; SPeDE  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Spectrum_Processing.cluster</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span><span class="s2">&quot;..&quot;</span><span class="p">))</span>
+<span class="kn">from</span> <span class="nn">Spectrum_Processing.postProcess</span> <span class="k">import</span> <span class="n">format_CSV</span><span class="p">,</span> <span class="n">format_TXT</span>
+
+
+<div class="viewcode-block" id="SpectrumClustering"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.cluster.SpectrumClustering">[docs]</a><span class="k">class</span> <span class="nc">SpectrumClustering</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; The Class that takes care of matching, referencing and grouping (clustering) the data present in the uniqueness matrix.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">out_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a class that can cluster uniqueness values.</span>
+
+<span class="sd">        :param provider: Provides the input files and locations used in calculations.</span>
+<span class="sd">        :type provider: FileProvider</span>
+<span class="sd">        :param threshold: Cluster threshold.</span>
+<span class="sd">        :type threshold: int</span>
+<span class="sd">        :param output_directory: Path to the output folder</span>
+<span class="sd">        :type output_directory: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="n">provider</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="o">=</span> <span class="n">output_directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_array</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="o">=</span><span class="n">out_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_list</span><span class="o">=</span><span class="kc">None</span>
+
+
+
+<div class="viewcode-block" id="SpectrumClustering.prepare_clustering"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.cluster.SpectrumClustering.prepare_clustering">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_clustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uniqueness_matrix</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the clustering of the uniqueness matrix to their respective arrays.</span>
+
+<span class="sd">        The 3 attributes refer_array, match_array, group_array are constructed.</span>
+<span class="sd">        After executing each array contains size 3 arrays representing a REFER, MATCH, or GROUP</span>
+
+<span class="sd">        :param uniqueness_matrix: A square matrix representing the uniqueness matrix.</span>
+<span class="sd">        :type uniqueness_matrix: array</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_array</span><span class="o">=</span><span class="p">[]</span>
+
+
+
+        <span class="c1"># Sort the columns and rows of the matrix by descending row sum</span>
+        <span class="n">column_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">uniqueness_matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">column_sum</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">uniqueness_matrix</span> <span class="o">=</span> <span class="n">uniqueness_matrix</span><span class="p">[:,</span> <span class="n">sorted_indices</span><span class="p">]</span>
+        <span class="n">uniqueness_matrix</span> <span class="o">=</span> <span class="n">uniqueness_matrix</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Apply the new ordering to the filenames and fms_files</span>
+        <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+        <span class="n">fms_files</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_fms_files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+
+        <span class="c1"># Set all lower-triangular spectra to NaN in order to find the indices of the zero elements in the upper</span>
+        <span class="c1"># triangular portion of the uniqueness matrix</span>
+        <span class="n">uniqueness_matrix</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">tril_indices</span><span class="p">(</span><span class="n">uniqueness_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">zero_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">uniqueness_matrix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Each element of the array `spectra` is a tuple consisting of four spectra denoting:</span>
+        <span class="c1">#   - A boolean indicating whether this spectra was visited</span>
+        <span class="c1">#   - A list of references to other spectra</span>
+        <span class="c1">#   - An index indicating the spectrum it refers to, None if N/A</span>
+        <span class="c1">#   - A boolean indicating whether this spectrum is a reference spectrum</span>
+        <span class="n">spectra</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">False</span><span class="p">,</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_filenames</span><span class="p">))]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">zero_indices</span><span class="p">:</span>
+            <span class="c1"># Convert Numpy integers to good ol&#39; Python integers.</span>
+            <span class="c1">#todo: optimize: necessary?</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+            <span class="c1"># Mark the involved spectra as visited</span>
+            <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span>
+
+            <span class="c1"># Append element i to the array present in spectra[j]</span>
+            <span class="c1"># todo: check: Do they need to be linked if they are not processed due to too low PPMC in the next step?</span>
+            <span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+=</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="c1"># Don&#39;t further process matches where the total PPMC of the peaks above 2100 is lower than the threshold</span>
+            <span class="c1">#todo: optimize: definitely</span>
+            <span class="n">samples_file_i</span><span class="p">,</span> <span class="n">samples_file_j</span> <span class="o">=</span> <span class="n">fms_files</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">235</span><span class="p">:],</span> <span class="n">fms_files</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">235</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">samples_file_i</span><span class="p">,</span> <span class="n">samples_file_j</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1">#spectrum[x][2]: An index indicating the spectrum it refers to, None if N/A</span>
+            <span class="k">if</span> <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="c1">#both already refer to another spectrum, just match these two</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filenames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="c1"># The second spectrum does is not a reference yet</span>
+                <span class="c1"># Make sure the second spectrum is unique wrt the whole chain, so check unicity with every reference</span>
+                <span class="c1"># that&#39;s linked.</span>
+
+                <span class="c1"># Make the second spectrum refer to the reference of the first spectrum</span>
+                <span class="n">referred_index</span><span class="o">=</span><span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">ref_unique_peaks</span><span class="o">=</span><span class="n">uniqueness_matrix</span><span class="p">[</span><span class="n">referred_index</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="c1">#repeat until we reach the end of the chain, or a unique peak is found</span>
+                <span class="k">while</span> <span class="n">ref_unique_peaks</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">referred_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># j= second spectrum index</span>
+                    <span class="c1"># get the next reference in the chain</span>
+                    <span class="n">referred_index</span><span class="o">=</span><span class="n">spectra</span><span class="p">[</span><span class="n">referred_index</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="c1"># check uniqueness of second spectrum wrt referred spectrum</span>
+                    <span class="n">ref_unique_peaks</span><span class="o">=</span><span class="n">uniqueness_matrix</span><span class="p">[</span><span class="n">referred_index</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">ref_unique_peaks</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># ref is found</span>
+                    <span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filenames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c1">#ref_unique_peaks==0 and referred_index== None</span>
+                    <span class="c1">#end of the chain is reached</span>
+                    <span class="c1"># no new reference has been found, just add a match</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filenames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="c1">#make the first spectrum a reference, and match the second with the first</span>
+                <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filenames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1"># not spectra[j][2] and not spectra[i][2]:</span>
+                <span class="c1"># If both involved spectra don&#39;t refer to another spectra, then make j refer to i</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filenames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+                <span class="c1">#self.outfile.write(&#39;REFER {0} {1}\n&#39;.format(filenames[j], filenames[i]))</span>
+                <span class="n">spectra</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+        <span class="c1"># Place each unvisited spectrum in its own cluster</span>
+        <span class="n">spectra</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">True</span><span class="p">,</span> <span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">visited</span> <span class="k">else</span> <span class="p">[</span><span class="n">visited</span><span class="p">,</span> <span class="n">refers</span><span class="p">,</span> <span class="n">has_reference</span><span class="p">,</span> <span class="n">is_reference</span><span class="p">]</span>
+                   <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">[</span><span class="n">visited</span><span class="p">,</span> <span class="n">refers</span><span class="p">,</span> <span class="n">has_reference</span><span class="p">,</span> <span class="n">is_reference</span><span class="p">]</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">)]</span>
+
+        <span class="c1"># Make a list with length len(spectra), the value at index i is a set{i} if the spectrum at that index is a reference spectrum</span>
+
+        <span class="n">corresponding_cluster</span> <span class="o">=</span> <span class="p">[{</span><span class="n">i</span><span class="p">}</span> <span class="k">if</span> <span class="n">is_reference</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+                                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">[</span><span class="n">visited</span><span class="p">,</span> <span class="n">refers</span><span class="p">,</span> <span class="n">has_reference</span><span class="p">,</span> <span class="n">is_reference</span><span class="p">]</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">)]</span>
+
+
+        <span class="c1"># All reference spectra and their children are in their own cluster at the moment</span>
+        <span class="c1"># Merge clusters if necessary</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">references</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">):</span> <span class="c1">#for each spectrum and its index</span>
+            <span class="n">old_clusters</span><span class="p">,</span> <span class="n">new_cluster</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">references</span><span class="p">:</span> <span class="c1">#for each reference to some other spectrum for my spectrum</span>
+                <span class="n">old_clusters</span> <span class="o">+=</span> <span class="p">[</span><span class="n">corresponding_cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="c1">#gather the clusters of those children (your &quot;linked&quot; clusters)</span>
+                <span class="n">new_cluster</span> <span class="o">|=</span> <span class="n">corresponding_cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="c1">#gather the clusters of those children in a set: unique numbers</span>
+
+            <span class="c1"># for each sample: (each sample has a set of linked clusters)</span>
+
+
+            <span class="c1">#   for each cluster in sample_linked_clusterset</span>
+            <span class="c1">#       if child_cluster old_cluster==corresponding_cluster[j]:</span>
+            <span class="c1">#           corresponding_cluster[j]= new_cluster</span>
+            <span class="c1">#               break</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">corresponding_cluster</span><span class="p">)):</span> <span class="c1">#now check for every linked cluster</span>
+                <span class="c1">#todo: optimize: via &quot;in&quot;?</span>
+
+                <span class="n">matches</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">old_cluster</span> <span class="ow">is</span> <span class="n">corresponding_cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">old_cluster</span> <span class="ow">in</span> <span class="n">old_clusters</span><span class="p">)</span> <span class="c1">#if any linked spectrum&#39;s cluster is the same as has a reference spectrum already in its own cluster</span>
+                <span class="k">if</span> <span class="n">matches</span><span class="p">:</span> <span class="c1">#merge them-&gt; set the corresponding cluster to the new cluster</span>
+                    <span class="n">corresponding_cluster</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cluster</span>
+
+        <span class="c1"># Print the reference spectra for each cluster</span>
+        <span class="n">all_clusters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span> <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">corresponding_cluster</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_clusters</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">cluster</span><span class="p">:</span>
+                <span class="c1">#self.outfile.write(&#39;GROUP {0} {1}\n&#39;.format(filenames[j],i))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">group_array</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">filenames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">i</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="SpectrumClustering.write_clustering"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.cluster.SpectrumClustering.write_clustering">[docs]</a>    <span class="k">def</span> <span class="nf">write_clustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_format</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write all clustering info in the format `out_format` to an output file.</span>
+
+<span class="sd">        :param out_format: The format of the output file.</span>
+<span class="sd">        :type out_format: str</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">out_format</span><span class="o">==</span><span class="s2">&quot;txt&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">!=</span> <span class="s2">&quot;.txt&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="o">+=</span><span class="s2">&quot;.txt&quot;</span>
+            <span class="n">format_TXT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_array</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># out_format==&quot;csv&quot;:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">!=</span> <span class="s2">&quot;.csv&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="o">+=</span><span class="s2">&quot;.csv&quot;</span>
+            <span class="n">format_CSV</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_array</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">out_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpectrumClustering.generate_reference_list"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.cluster.SpectrumClustering.generate_reference_list">[docs]</a>    <span class="k">def</span> <span class="nf">generate_reference_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a reference list which contains all references.</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_list</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="p">[</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">group_number</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_array</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reference_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span>
+
+
+        <span class="k">for</span> <span class="p">[</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">ref_spectrum</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reference_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ref_spectrum</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpectrumClustering.integrate_dice_refers"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.cluster.SpectrumClustering.integrate_dice_refers">[docs]</a>    <span class="k">def</span> <span class="nf">integrate_dice_refers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dice_refer_array</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add all dice refers to the cluster refer array.</span>
+
+<span class="sd">        :param dice_refer_array: An array with refers generated from dice matching.</span>
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">dice_refer_array</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refer_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">SPeDE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GUI.html">GUI package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Spectrum_Processing.html">Spectrum_Processing package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vandamme Tim.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,491 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spectrum_Processing.matcher &#8212; SPeDE  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for Spectrum_Processing.matcher</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">concurrent.futures</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="n">EXPERIMENT</span><span class="o">=</span><span class="kc">False</span>
+
+<div class="viewcode-block" id="SpectrumMatcher"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.SpectrumMatcher">[docs]</a><span class="k">class</span> <span class="nc">SpectrumMatcher</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles the creation of a uniqueness matrix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">validate</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">validation_output_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a matcher that can be used to calculate the uniqueness matrix.</span>
+
+<span class="sd">        :param provider: Provides the input files and locations used in calculations.</span>
+<span class="sd">        :type provider: FileProvider</span>
+<span class="sd">        :param density: PPMC threshold used to determine matches in the initial matching.</span>
+<span class="sd">        :type density: int</span>
+<span class="sd">        :param local: PPMC local threshold expressed as a percentage used to refine matches based on their PPMC.</span>
+<span class="sd">        :type local: int</span>
+<span class="sd">        :param cutoff: S/N cutoff value.</span>
+<span class="sd">        :type cutoff: int</span>
+<span class="sd">        :param validate: Determines whether or not the full uniqueness matrix is written to an outputfile validation_data.csv</span>
+<span class="sd">        :type validate: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="n">provider</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="n">density</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">local</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="o">=</span> <span class="n">validate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="o">=</span><span class="n">output_directory</span>
+
+        <span class="c1">#output must be csv</span>
+        <span class="k">if</span> <span class="n">validation_output_name</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">!=</span> <span class="s2">&quot;.csv&quot;</span><span class="p">:</span>
+            <span class="n">validation_output_name</span> <span class="o">+=</span> <span class="s2">&quot;.csv&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validation_output</span><span class="o">=</span><span class="n">validation_output_name</span>
+
+<div class="viewcode-block" id="SpectrumMatcher.calculate_uniqueness_matrix"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.SpectrumMatcher.calculate_uniqueness_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_uniqueness_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the uniqueness matrix and optionally prints validation data.</span>
+
+<span class="sd">        When the flag -v is set, the validation data will be printed to an external file.</span>
+
+<span class="sd">        :return: The uniqueness matrix of all files contained in `provider`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">maximum_pkl_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_pkl_files</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">maximum_interval_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">intervals</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">intervals</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">matcher_jit</span> <span class="o">=</span> <span class="n">SpectrumMatcherJIT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_pkl_files</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">pkl_files_length</span><span class="p">,</span> <span class="n">maximum_pkl_length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_fms_files</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span> <span class="n">maximum_interval_length</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sys: Start calculating using </span><span class="si">{0}</span><span class="s2"> processess...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()))</span>
+        <span class="c1">#parallellize the calculation of the uniqueness values</span>
+        <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">jobs_count</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+            <span class="n">jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">calculate_uniqueness_matrix_step</span><span class="p">,</span> <span class="n">matcher_jit</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">jobs_count</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">jobs_count</span><span class="p">)]</span>
+
+
+        <span class="c1">#todo: optimize: via axis sum</span>
+        <span class="n">uniqueness_matrix</span> <span class="o">=</span> <span class="n">jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">shared_matrix</span><span class="o">=</span><span class="n">jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1">#todo: do something with shared_matrix</span>
+        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">uniqueness_matrix</span> <span class="o">+=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">shared_matrix</span><span class="o">+=</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">print_validation</span><span class="p">(</span><span class="n">uniqueness_matrix</span><span class="p">,</span> <span class="n">shared_matrix</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">uniqueness_matrix</span></div>
+
+<div class="viewcode-block" id="SpectrumMatcher.print_validation"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.SpectrumMatcher.print_validation">[docs]</a>    <span class="k">def</span> <span class="nf">print_validation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uniqueness_matrix</span><span class="p">,</span> <span class="n">shared_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print the uniqueness matrix to an external file data_validation.csv</span>
+
+<span class="sd">        :param uniqueness_matrix: The matrix to be serialized.</span>
+<span class="sd">        :type uniqueness_matrix: array</span>
+<span class="sd">        :param shared_matrix: (Optional) Not currently used.</span>
+<span class="sd">        :type shared_matrix: array</span>
+
+<span class="sd">        :return: void</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Sort the columns and rows of the matrix by descending row sum</span>
+        <span class="n">column_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">uniqueness_matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">column_sum</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">validation_matrix</span> <span class="o">=</span> <span class="n">uniqueness_matrix</span><span class="p">[:,</span> <span class="n">sorted_indices</span><span class="p">]</span>
+        <span class="n">validation_matrix</span> <span class="o">=</span> <span class="n">validation_matrix</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">,</span> <span class="p">:]</span>
+
+
+        <span class="c1"># Apply the new ordering to the filenames and fms_files</span>
+        <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">green_filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+
+
+        <span class="c1"># Make sure the output file can be written to</span>
+        <span class="n">outfilename</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">validation_output</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfilename</span><span class="p">,</span><span class="s2">&quot;w+&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span>
+
+
+        <span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">validation_matrix</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">filenames</span><span class="p">)</span>
+
+        <span class="c1"># Insert a column with the filenames</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">output</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+
+
+<span class="c1">#todo: optimize: param size</span>
+<span class="nd">@nb</span><span class="o">.</span><span class="n">jitclass</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;local&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;cutoff&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;pkl_files&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">float64</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]),</span>
+    <span class="p">(</span><span class="s1">&#39;pkl_files_length&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int32</span><span class="p">[:]),</span>
+    <span class="p">(</span><span class="s1">&#39;maximum_pkl_length&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;fms_files&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int32</span><span class="p">[:,</span> <span class="p">:]),</span>
+    <span class="p">(</span><span class="s1">&#39;intervals&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">float64</span><span class="p">[:,</span> <span class="p">:]),</span>
+    <span class="p">(</span><span class="s1">&#39;maximum_interval_length&#39;</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<span class="p">])</span>
+<span class="k">class</span> <span class="nc">SpectrumMatcherJIT</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A JIT-compiled class that holds all information necessary to compute the uniqueness matrix.</span>
+
+<span class="sd">    Note that this new class is introduced since `SpectrumMatcher` needs access to functions that are not supported in</span>
+<span class="sd">    the NoPython mode of Numba (e.g. concurrent.futures). Since that class can&#39;t be passed around, this one is created.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">pkl_files</span><span class="p">,</span> <span class="n">pkl_files_length</span><span class="p">,</span> <span class="n">maximum_pkl_length</span><span class="p">,</span> <span class="n">fms_files</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">maximum_interval_length</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="n">density</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">local</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pkl_files</span> <span class="o">=</span> <span class="n">pkl_files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pkl_files_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pkl_files_length</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum_pkl_length</span> <span class="o">=</span> <span class="n">maximum_pkl_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fms_files</span> <span class="o">=</span> <span class="n">fms_files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">intervals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum_interval_length</span> <span class="o">=</span> <span class="n">maximum_interval_length</span>
+
+
+
+<div class="viewcode-block" id="calculate_uniqueness_matrix_step"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.calculate_uniqueness_matrix_step">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">calculate_uniqueness_matrix_step</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate a part of the uniqueness matrix.</span>
+
+<span class="sd">    A process uses this function to calculate a part of the uniqueness matrix. More specifically, all rows every `step`</span>
+<span class="sd">    rows is calculated.</span>
+
+<span class="sd">    :param matcher: A JIT compiled class containing the necessary variables, files and locations for calculating the partial matrix.</span>
+<span class="sd">    :type matcher: SpectrumMatcherJIT</span>
+<span class="sd">    :param start: The first row at which the current process starts.</span>
+<span class="sd">    :type start: int</span>
+<span class="sd">    :param step: The total amount of processes working on the complete uniqueness matrix.</span>
+<span class="sd">    :type step: int</span>
+<span class="sd">    :return: A part of the uniqueness matrix and shared matrix in which every step-th row is filled in.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#todo: optimize: datatypes</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">pkl_files</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">uniqueness_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">count</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+    <span class="n">shared_matrix</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">count</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+    <span class="c1">#todo: print progress</span>
+
+    <span class="c1"># Fill in the uniqueness matrix</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span> <span class="c1">#for each row, every step, until count, do</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>   <span class="c1">#for each column in the upper-right part of the matrix</span>
+            <span class="c1"># calculate the unique values of i wrt j and vice versa, but remember that (i,j) shows the unique peaks of</span>
+            <span class="c1"># the ith file wrt the jth file , so the indices should be swapped when filling the matrix</span>
+            <span class="c1">#todo: clean: switch these indices for clarity</span>
+            <span class="n">unique_x</span><span class="p">,</span> <span class="n">unique_y</span><span class="p">,</span> <span class="n">shared_xy</span> <span class="o">=</span> <span class="n">calculate_uniqueness_value</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">uniqueness_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_y</span> <span class="c1">#swap indices: (i,j) with y</span>
+            <span class="n">uniqueness_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_x</span> <span class="c1">#swap indices: (j,i) with x</span>
+            <span class="n">shared_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">shared_xy</span>       <span class="c1">#gather the shared features between x and y</span>
+
+    <span class="k">return</span> <span class="n">uniqueness_matrix</span><span class="p">,</span> <span class="n">shared_matrix</span></div>
+
+
+<div class="viewcode-block" id="calculate_uniqueness_value"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.calculate_uniqueness_value">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">calculate_uniqueness_value</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the unique x and unique y values for the given spectra indices.</span>
+
+<span class="sd">    :param matcher: A JIT compiled class containing the necessary variables, files and locations for calculating the partial matrix.</span>
+<span class="sd">    :type matcher: SpectrumMatcherJIT</span>
+<span class="sd">    :param i: The spectra at matrix spot (i,j)=x and (j,i)=y are compared.</span>
+<span class="sd">    :type i: int</span>
+<span class="sd">    :param j: The spectra at matrix spot (i,j)=x and (j,i)=y are compared.</span>
+<span class="sd">    :type j: int</span>
+<span class="sd">    :return: A 3-tuple whose elements are the amount of x, y and shared xy values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Execute the first step of the algorithm (i.e. matching peaks). The output of this method is elaborately</span>
+    <span class="c1"># described in the corresponding docstring. In short, we now have two Numpy arrays of equal length of which we</span>
+    <span class="c1"># want to compute the PPMC between corresponding rows and two arrays that denote the unique x and y matches.</span>
+    <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span> <span class="n">shared_peaks_xy</span> <span class="o">=</span> <span class="n">construct_matching_list</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+    <span class="c1"># Compute the PPMC between each row of `intervals_x` and `intervals_y` and store the result in `ppmcs`.</span>
+    <span class="n">denominators</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intervals_x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intervals_y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">ppmcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intervals_x</span> <span class="o">*</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">denominators</span> <span class="o">*</span> <span class="mi">100</span>
+
+    <span class="c1"># For each match where the PPMC is below the given threshold, increment the corresponding unique counter.</span>
+    <span class="n">matches_below_threshold</span> <span class="o">=</span> <span class="p">(</span><span class="n">ppmcs</span> <span class="o">&lt;</span> <span class="n">matcher</span><span class="o">.</span><span class="n">local</span><span class="p">)</span>
+    <span class="n">unique_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">matches_below_threshold</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">))</span>
+    <span class="n">unique_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">matches_below_threshold</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">))</span>
+    <span class="n">shared_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">matches_below_threshold</span><span class="p">),</span> <span class="n">shared_peaks_xy</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">unique_x</span><span class="p">,</span> <span class="n">unique_y</span><span class="p">,</span> <span class="n">shared_xy</span></div>
+
+
+<span class="nd">@nb</span><span class="o">.</span><span class="n">njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_find_nearest_interval</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the start and end index of the interval that corresponds to the given location.</span>
+
+<span class="sd">    :param location: The M/Z value of the peak whose surrounding interval we wish to obtain.</span>
+<span class="sd">    :type location: int</span>
+<span class="sd">    :param intervals: The first index denotes an M/Z value. The second and third values are the indices in an FMS file for which that index gives you the interval start, respectively end value.</span>
+<span class="sd">    :type intervals: array</span>
+<span class="sd">    :return: The start and end index of the interval corresponding to the M/Z value that is the closest to the given M/Z value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#todo: optimize: convert intervals to continuous array such that no searching is needed</span>
+    <span class="c1"># Locate the index where the given location would be inserted in the list of intervals</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">intervals</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">location</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+
+    <span class="c1"># The closest M/Z value in the list of intervals is now either the index itself or the previous index.</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="n">intervals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span>
+                  <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">location</span> <span class="o">-</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">math</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">location</span> <span class="o">-</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">])):</span>
+        <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="c1"># Convert the start and end value of the interval to indices into the FMS file.</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="add_match"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.add_match">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">add_match</span><span class="p">(</span><span class="n">mz</span><span class="p">,</span> <span class="n">x_above</span><span class="p">,</span> <span class="n">y_above</span><span class="p">,</span> <span class="n">xy_shared</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span> <span class="n">shared_peaks_xy</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add an entry to the passed variables to indicate a new match has been found.</span>
+
+<span class="sd">    For a new M/Z value, fill intervals_x, intervals_y, threshold_exceeded_x and threshold_exceeded_y with the appropriate intervals surrounding</span>
+<span class="sd">    the M/Z value for x and y. Also fill threshold_exceeded_x/y with whether or not the x/y peak exceeded the cutoff threshold.</span>
+
+<span class="sd">    :param mz: The MZ value of the peak that is compared to.</span>
+<span class="sd">    :type mz: int</span>
+<span class="sd">    :param x_above: Denotes if the x peak S/N value surpasses the threshold value.</span>
+<span class="sd">    :type x_above: bool</span>
+<span class="sd">    :param y_above: Denotes if the y peak S/N value surpasses the threshold value.</span>
+<span class="sd">    :type y_above: bool</span>
+<span class="sd">    :param xy_shared: Denotes if x and y are sharing a peak with M/Z value mz.</span>
+<span class="sd">    :type xy_shared: bool</span>
+<span class="sd">    :param intervals: The first index denotes an M/Z value. The second and third values are the indices in a FMS file for which that index gives you the interval start, respectively end value.</span>
+<span class="sd">    :type intervals: array</span>
+<span class="sd">    :param index: The index at which a new match should be inserted.</span>
+<span class="sd">    :type index: int</span>
+<span class="sd">    :param intervals_x: Contains at each index the appropriate interval of signal intensities values for spectrum x.</span>
+<span class="sd">    :type intervals_x: array</span>
+<span class="sd">    :param intervals_y: Contains at each index the appropriate interval of signal intensities values for spectrum y.</span>
+<span class="sd">    :type intervals_y: array</span>
+<span class="sd">    :param threshold_exceeded_x: Contains at each index whether or not the enlisted peak of spectrum x surpassed the cutoff threshold.</span>
+<span class="sd">    :type threshold_exceeded_x: array[bool]</span>
+<span class="sd">    :param threshold_exceeded_y: Contains at each index whether or not the enlisted peak of spectrum y surpassed the cutoff threshold.</span>
+<span class="sd">    :type threshold_exceeded_y: array[bool]</span>
+<span class="sd">    :param shared_peaks_xy: Contains at each index whether or not the enlisted peak</span>
+<span class="sd">    :type shared_peaks_xy: array[bool]</span>
+<span class="sd">    :param fms_file_x: FMS file of spectrum x.</span>
+<span class="sd">    :type fms_file_x: array</span>
+<span class="sd">    :param fms_file_y: FMS file of spectrum y.</span>
+<span class="sd">    :type fms_file_y: array</span>
+<span class="sd">    :return: void</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">=</span> <span class="n">_find_nearest_interval</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span> <span class="n">mz</span><span class="p">)</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">start_idx</span>
+
+
+    <span class="n">intervals_x</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="n">fms_file_x</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fms_file_x</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">intervals_y</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="n">fms_file_y</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fms_file_y</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">threshold_exceeded_x</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_above</span>
+    <span class="n">threshold_exceeded_y</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_above</span>
+    <span class="n">shared_peaks_xy</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">=</span><span class="n">xy_shared</span></div>
+
+
+<div class="viewcode-block" id="construct_matching_list"><a class="viewcode-back" href="../../Spectrum_Processing.html#Spectrum_Processing.matcher.construct_matching_list">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">njit</span><span class="p">(</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">construct_matching_list</span><span class="p">(</span><span class="n">matcher</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return an array representing the matching of samples between the FMS files based on the PKL files.</span>
+
+<span class="sd">    This method implements the first step of computing the uniqueness matrix in the given algorithm. However,</span>
+<span class="sd">    instead of returning a list of (x_idx, y_idx) pairs, it returns a representation that is better suited for</span>
+<span class="sd">    efficiently executing subsequent steps of the algorithm.</span>
+
+<span class="sd">    :param matcher: A JIT compiled class containing the necessary variables, files and locations for current calculations.</span>
+<span class="sd">    :type matcher: SpectrumMatcherJIT</span>
+<span class="sd">    :param i: The spectra at matrix spot (i,j)=X and (j,i)=Y are manipulated.</span>
+<span class="sd">    :type i: int</span>
+<span class="sd">    :param j: The spectra at matrix spot (i,j)=X and (j,i)=Y are manipulated.</span>
+<span class="sd">    :type j: int</span>
+<span class="sd">    :return: A 5-tuple (intervals_x, intervals_y, threshold_exceeded_x, threshold_exceeded_y containing for all peaks of x and y the appropriate intervals, whether or not a peak surpassed the cutoff threshold and if they share shared peaks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pkl_file_x</span><span class="p">,</span> <span class="n">pkl_file_y</span><span class="p">,</span> <span class="n">pkl_file_x_length</span><span class="p">,</span> <span class="n">pkl_file_y_length</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">pkl_files</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">matcher</span><span class="o">.</span><span class="n">pkl_files</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">matcher</span><span class="o">.</span><span class="n">pkl_files_length</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">matcher</span><span class="o">.</span><span class="n">pkl_files_length</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">matcher</span><span class="o">.</span><span class="n">fms_files</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">matcher</span><span class="o">.</span><span class="n">fms_files</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+    <span class="n">density</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">intervals</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">density</span><span class="p">,</span> <span class="n">matcher</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="n">matcher</span><span class="o">.</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">matcher</span><span class="o">.</span><span class="n">intervals</span>
+
+    <span class="n">y_pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1">#an array which will contain at each index the appropriate interval of signal intensities. Will be used in PPMC calculations</span>
+    <span class="n">intervals_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">matcher</span><span class="o">.</span><span class="n">maximum_pkl_length</span><span class="p">,</span> <span class="n">matcher</span><span class="o">.</span><span class="n">maximum_interval_length</span><span class="p">))</span>
+    <span class="n">intervals_y</span> <span class="o">=</span> <span class="n">intervals_x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1">#an array which will contains booleans denoting if the peak at index i has exceeded the cutoff threshold</span>
+    <span class="n">threshold_exceeded_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">matcher</span><span class="o">.</span><span class="n">maximum_pkl_length</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">threshold_exceeded_y</span> <span class="o">=</span> <span class="n">threshold_exceeded_x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1">#an array which will contain booleans indicating if the peaks at index i and j have shared features</span>
+    <span class="n">shared_peaks_xy</span><span class="o">=</span><span class="n">threshold_exceeded_x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1">#the value at which a peak has to be stored in threshold_*</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">QUALITY_GREEN</span><span class="o">=</span><span class="mi">2</span> <span class="c1">#A local constant that depicts the Quality.Green enum</span>
+
+    <span class="k">for</span> <span class="n">x_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pkl_file_x_length</span><span class="p">):</span> <span class="c1">#for each reference peak in x&#39;s peak file</span>
+        <span class="n">x_mz</span><span class="p">,</span> <span class="n">x_sn</span> <span class="o">=</span> <span class="n">pkl_file_x</span><span class="p">[</span><span class="n">x_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">pkl_file_x</span><span class="p">[</span><span class="n">x_i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="c1">#get my reference peak index M/Z value and reference S/N value</span>
+
+        <span class="c1"># Starting from index `y_pos`, determine the index `y_i` where the M/Z value of X would be inserted in the</span>
+        <span class="c1"># array of M/Z values of Y if we wanted to keep the array sorted. That is, the index of the first unmatched</span>
+        <span class="c1"># M/Z value in the Y array that is bigger than the current M/Z value of X.</span>
+        <span class="n">y_i</span> <span class="o">=</span> <span class="n">y_pos</span>
+        <span class="k">while</span> <span class="n">y_i</span> <span class="o">!=</span> <span class="n">pkl_file_y_length</span> <span class="ow">and</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">x_mz</span><span class="p">:</span>   <span class="c1">#while my sample peak value is lower than the reference peak value (#pkl_file_y[x]=(peak M/Z value , S/N value) at index x)</span>
+            <span class="n">y_i</span> <span class="o">+=</span> <span class="mi">1</span>                                                    <span class="c1">#increase index</span>
+
+        <span class="c1"># Compare y_position - 1 and y_position and match x with the best of these two (lowest error)</span>
+
+        <span class="c1">#factor 0.5 is moved to denominator in the comparison with the density</span>
+        <span class="n">predecessor_match</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_mz</span> <span class="o">-</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">x_mz</span> <span class="o">+</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">y_i</span> <span class="o">!=</span> <span class="n">y_pos</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">successor_match</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_mz</span> <span class="o">-</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">x_mz</span> <span class="o">+</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">y_i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pkl_file_y</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="k">if</span> <span class="n">predecessor_match</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">density</span> <span class="ow">or</span> <span class="n">successor_match</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">density</span><span class="p">:</span> <span class="c1">#if a match is made</span>
+
+            <span class="k">if</span> <span class="n">predecessor_match</span> <span class="o">&lt;</span> <span class="n">successor_match</span><span class="p">:</span>
+                <span class="n">y_i</span><span class="o">-=</span><span class="mi">1</span> <span class="c1">#reference peak at previous index was better</span>
+            <span class="c1">#else: reference peak at current index is best</span>
+
+            <span class="c1">#y_i -= 1 if predecessor_match &lt; successor_match else 0 #</span>
+
+
+            <span class="c1">#todo: optimize: do not partition the for loops that much, compiler will be able optimize better if they are contained as a whole?</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">y_pos</span><span class="p">,</span> <span class="n">y_i</span><span class="p">):</span> <span class="c1">#for every sample peak the we passed-&gt; unmatched peaks</span>
+                <span class="k">if</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">QUALITY_GREEN</span><span class="p">:</span> <span class="c1">#if its S/N value is high enough</span>
+                    <span class="c1">#add a match while denoting that the sample&#39;s y exceeds the threshold, since, as the peaklists are ordered, no peak will match with these</span>
+                    <span class="n">add_match</span><span class="p">(</span><span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span> <span class="n">shared_peaks_xy</span><span class="p">,</span><span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">)</span>
+                    <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1">#increase the index in which we put the next peak in add_match</span>
+
+            <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y_i</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1">#continue your search for the next match starting from the index following our current peak</span>
+
+            <span class="c1">#categorize the matched peaks</span>
+            <span class="k">if</span> <span class="n">x_sn</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span> <span class="ow">or</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">:</span> <span class="c1">#if one of both peaks has an adequate S/N value</span>
+                <span class="c1">#add a match with the corresponding booleans in the x/y matched arrays</span>
+                <span class="k">if</span> <span class="n">EXPERIMENT</span><span class="p">:</span>
+                    <span class="c1">#take the average of M/Z values to search for the window</span>
+                    <span class="n">mz_value</span><span class="o">=</span><span class="p">(</span><span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x_mz</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+                    <span class="n">add_match</span><span class="p">(</span><span class="n">mz_value</span><span class="p">,</span> <span class="n">x_sn</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">,</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span><span class="n">shared_peaks_xy</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">add_match</span><span class="p">(</span><span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_sn</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">,</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span><span class="n">shared_peaks_xy</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1">#add to matched list to check for shared features</span>
+                <span class="n">add_match</span><span class="p">(</span><span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span><span class="n">shared_peaks_xy</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">elif</span> <span class="n">x_sn</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">:</span> <span class="c1">#if no sample peak matched with the reference peak</span>
+            <span class="n">add_match</span><span class="p">(</span><span class="n">x_mz</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span> <span class="n">shared_peaks_xy</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">y_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">y_pos</span><span class="p">,</span> <span class="n">pkl_file_y_length</span><span class="p">):</span>
+        <span class="n">y_mz</span> <span class="o">=</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">y_sn</span> <span class="o">=</span> <span class="n">pkl_file_y</span><span class="p">[</span><span class="n">y_i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">y_sn</span> <span class="o">==</span><span class="n">QUALITY_GREEN</span><span class="p">:</span>
+            <span class="n">add_match</span><span class="p">(</span><span class="n">y_mz</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span><span class="n">shared_peaks_xy</span><span class="p">,</span> <span class="n">fms_file_x</span><span class="p">,</span> <span class="n">fms_file_y</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1">#retain only the useful information of the respective arrays</span>
+    <span class="n">intervals_x</span> <span class="o">=</span> <span class="n">intervals_x</span><span class="p">[:</span><span class="n">index</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">intervals_y</span> <span class="o">=</span> <span class="n">intervals_y</span><span class="p">[:</span><span class="n">index</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">threshold_exceeded_x</span> <span class="o">=</span> <span class="n">threshold_exceeded_x</span><span class="p">[:</span><span class="n">index</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">threshold_exceeded_y</span> <span class="o">=</span> <span class="n">threshold_exceeded_y</span><span class="p">[:</span><span class="n">index</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">shared_peaks_xy</span><span class="o">=</span><span class="n">shared_peaks_xy</span><span class="p">[:</span><span class="n">index</span><span class="p">,</span> <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">intervals_x</span><span class="p">,</span> <span class="n">intervals_y</span><span class="p">,</span> <span class="n">threshold_exceeded_x</span><span class="p">,</span> <span class="n">threshold_exceeded_y</span><span class="p">,</span> <span class="n">shared_peaks_xy</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">SPeDE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../GUI.html">GUI package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Spectrum_Processing.html">Spectrum_Processing package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vandamme Tim.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
