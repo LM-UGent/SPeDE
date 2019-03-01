@@ -8,6 +8,7 @@ Each text file should have two tab-spearated columns without headers.
 First column is the m/z value and second column the intensity value as in the example below:
 
 #m/z  int
+
 1998.75 686
 1999.17 603
 1999.59 640
