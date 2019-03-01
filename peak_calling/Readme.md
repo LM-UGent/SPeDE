@@ -9,8 +9,11 @@ First column is the m/z value and second column the intensity value as in the ex
 
 #m/z  int
 1998.75 686
+
 1999.17 603
+
 1999.59 640
+
 2000.00 599
 
 Output:
