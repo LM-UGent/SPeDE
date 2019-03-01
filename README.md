@@ -19,7 +19,7 @@
 
 1. Clone or download the Spectrum_Processing map onto your pc.
 2. Start the processing with the following command:  
-``Python <Path\to\ppmc_interval_index.csv> <Project_directory> <Output_directory> [-d <density>] [-c <cluster>] [-l <local>] [-m <cutoff>] [ -o <output_format>\] [-p <peak-count>] [-n <name>] [-q <validation_name>] [-v] [-e]``
+``Python SPeDE.py <Path\to\ppmc_interval_index.csv> <Project_directory> <Output_directory> [-d <density>] [-c <cluster>] [-l <local>] [-m <cutoff>] [ -o <output_format>\] [-p <peak-count>] [-n <name>] [-q <validation_name>] [-v] [-e]``
 
 
 ## Graphical processing (Windows and Linux)
