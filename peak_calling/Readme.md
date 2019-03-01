@@ -1,6 +1,7 @@
 R script used for peak calling on the benchmarking dataset as in Dumolin et al. 2019.
 
 Usage:
+
 $ Rscript peak-finding-cwt.R <FullMS>
 where <FullMS> is the name of a directory containing .txt files of quality filtered, raw mass spectra. 
 Each text file should have two tab-spearated columns without headers. 
