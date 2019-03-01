@@ -2,8 +2,9 @@ R script used for peak calling on the benchmarking dataset as in Dumolin et al. 
 
 <b>Usage</b>:
 
-$ Rscript peak_calling_cwt.R <FullMS>  
-where <FullMS> is the name of a directory containing .txt files of quality filtered, raw mass spectra. 
+$ Rscript peak_calling_cwt.R <i>FullMS</i>  
+
+where <i>FullMS</i> is the name of a directory containing .txt files of quality filtered, raw mass spectra. 
 Each text file should have two tab-spearated columns without headers. 
 First column is the m/z value and second column the intensity value as in the example below:
 
