@@ -69,7 +69,7 @@ CSV is currently also the only option.
 is greater or equal to the peak count threshold, the spectrum is eligible to be a reference spectrum, default 5.
 8. ``-n output name``: The name of the reference list output file. Extension must match output format, default <current_time_>SPeDE_output.csv.
 9. ``-q validation name``: The name of the data validation matrix. This must be a .csv file, default <current_time_>data_validation.csv.
-10. ``-e copy files``: Copy the resulting unique reference files to a submap, default false.
+10. ``-e copy files``: Copy the resulting unique reference files to a subfolder, default false.
 11. ``-k krona output``: Generate a [krona][krona_website] txt file, ready to be processed by the krona software.
 
 ## Output
