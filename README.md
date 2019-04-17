@@ -35,9 +35,8 @@
 
 *SPeDe* is a program that is used to dereplicate large sets of MALDI-TOF MS spectra. The analysis consist of screening the dataset for  spectra with unique spectral features and outputs the reduced set of selected reference spectra. Spectra not assigned as a refererence  are matched according to their matching reference spectra. 
 
-The program allows you to perform the  "on the fly" dereplicate process of MALDI-TOF MS spectra and summarizes them into groups, unique references and matching spectra.
+The program allows you to perform the  "on the fly" dereplicate process of MALDI-TOF MS spectra and summarizes them into unique references and matching spectra.
 
-![Output structure](https://github.ugent.be/tguvdamm/microbiology-spectrum-analysis/blob/master/Documentation/GSPeDE_grouping.jpg)
 
 The output will be written to a specified folder.
 
