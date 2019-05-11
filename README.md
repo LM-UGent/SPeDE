@@ -15,16 +15,16 @@
 
 ## Command driven processing (Windows and Linux supported, MacOS unknown)
 
-**This program can't be run on a Linux subsystem in Windows.**
+**This program cannot be run on a Linux subsystem in Windows.**
 
-1. Clone or download the Spectrum_Processing map onto your pc.
+1. Clone or download the Spectrum_Processing directory on your pc.
 2. Start the processing with the following command:  
 ``python SPeDE.py <Path\to\ppmc_interval_index.csv> <Project_directory> <Output_directory> [-d <density>] [-c <cluster>] [-l <local>] [-m <cutoff>] [ -o <output_format>\] [-p <peak-count>] [-n <name>] [-q <validation_name>] [-v] [-e]``
 
 
 ## Graphical processing (Windows and Linux)
 
-1. Clone or download the Spectrum\_Processing and GUI map to your pc into the same folder.
+1. Clone or download the Spectrum\_Processing and GUI directory to your pc into the same folder.
 2. Start the graphical interface by opening _GSPeDE.py_.
 3. Select the correct parameters.
 4. Start processing by clicking _Start_. 
