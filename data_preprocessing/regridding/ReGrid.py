@@ -1706,26 +1706,32 @@ class Spectrum:
 
             for i, j in enumerate(self.np_regrid_mz):
 
-                # upper point in the raw spectrum
-                id_mz_upper = np.searchsorted(self.np_raw_mz, j, side='left')
-                value_mz_upper = self.np_raw_mz[id_mz_upper]
-                value_int_upper = self.np_raw_int[id_mz_upper]
+                if j >= self.np_raw_mz[-1]:
 
-                # lower point in the raw spectrum
-                id_mz_lower = id_mz_upper - 1
-                value_mz_lower = self.np_raw_mz[id_mz_lower]
-                value_int_lower = self.np_raw_int[id_mz_lower]
+                    int_spectrum[i] = 0
 
-                # calculated distances in between mz grid vs upper and lower point mz, and factor
-                w1 = j - value_mz_lower
-                w2 = value_mz_upper - j
-
-                if w2 == 0:
-                    wr2 = 1
-                    wr1 = 0
                 else:
-                    wr2 = 1 / w2
-                    wr1 = 1 / w1
+
+                    # upper point in the raw spectrum
+                    id_mz_upper = np.searchsorted(self.np_raw_mz, j, side='left')
+                    value_mz_upper = self.np_raw_mz[id_mz_upper]
+                    value_int_upper = self.np_raw_int[id_mz_upper]
+
+                    # lower point in the raw spectrum
+                    id_mz_lower = id_mz_upper - 1
+                    value_mz_lower = self.np_raw_mz[id_mz_lower]
+                    value_int_lower = self.np_raw_int[id_mz_lower]
+
+                    # calculated distances in between mz grid vs upper and lower point mz, and factor
+                    w1 = j - value_mz_lower
+                    w2 = value_mz_upper - j
+
+                    if w2 == 0:
+                        wr2 = 1
+                        wr1 = 0
+                    else:
+                        wr2 = 1 / w2
+                        wr1 = 1 / w1
 
                 # calculate intensity mz_grid
                 int_spectrum[i] = int((wr1 * value_int_lower + wr2 * value_int_upper) / (wr1 + wr2))
@@ -1784,10 +1790,6 @@ def main(full_ms_dir, output_dir):
     p2.map(func, spectra)
     p2.close()
     p2.join()
-
-
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
