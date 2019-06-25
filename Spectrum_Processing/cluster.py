@@ -56,14 +56,21 @@ class SpectrumClustering:
         # Apply the new ordering to the filenames and fms_files
         filenames = [self.provider.green_filenames[i] for i in sorted_indices.tolist()]
         fms_files = [self.provider.green_fms_files[i] for i in sorted_indices.tolist()]
+        pkl_files = [self.provider.green_pkl_files[i] for i in sorted_indices.tolist()]
+        
+        # Copy of uniqueness_matrix used for matching of spectra to obtained references
+        uniqueness_matrix_full = np.copy(uniqueness_matrix)
+        uniqueness_matrix_ref = np.copy(uniqueness_matrix)
 
         # Set all lower-triangular spectra to NaN in order to find the indices of the zero elements in the upper
         # triangular portion of the uniqueness matrix
         uniqueness_matrix[np.tril_indices(uniqueness_matrix.shape[0], -1)] = np.nan
+        uniqueness_matrix_ref[np.tril_indices(uniqueness_matrix_ref.shape[0], 0)] = np.nan
 
 
         #convert the uniqueness_matrix nd_array to a panda dataframe
         uniqueness_matrix = pd.DataFrame(uniqueness_matrix)
+        uniqueness_matrix_full = pd.DataFrame(uniqueness_matrix_full)
 
 
         # Each element of the array `spectra` is a tuple consisting of four spectra denoting:
@@ -71,8 +78,12 @@ class SpectrumClustering:
         #   - A list of references to other spectra
         #   - An index indicating the spectrum it refers to, None if N/A
         #   - A boolean indicating whether this spectrum is a reference spectrum
-        spectra = [[False, [], None, False] for _ in range(len(self.provider.green_filenames))]
-
+        spectra = [[False, [], None, True] for _ in range(len(self.provider.green_filenames))]
+        
+        zero_indices = np.argwhere(uniqueness_matrix_ref == 0)
+        for i,j in zero_indices:
+            spectra[int(i)][3] = False
+            
         for column in uniqueness_matrix:
             # all row indexes in the coolumn with value 0, converted to a numpy array
             item_index = np.where(uniqueness_matrix[column] == 0)
@@ -91,11 +102,24 @@ class SpectrumClustering:
 
             # spectrum is not a reference
             else:
+
+                # Resort order of references in  item_index according to ascending UNX
+
+                check_order = pd.DataFrame(columns=['index', 'UNX'])
                 for x in np.nditer(item_index):
                     x = int(x)
+                    check_order = check_order.append({'index': x, 'UNX': uniqueness_matrix_full.at[column, x]}, ignore_index=True)
 
+                check_order.sort_values(by=['UNX', 'index'], inplace=True)
+                item_index_resorted = check_order['index'].values
+                item_index_resorted = np.append(item_index_resorted, column)
+
+                # Match non reference sample to obtained references
+                for x in np.nditer(item_index_resorted):
+                    x = int(x)
+                    
                     if x < column:
-                        if spectra[x][3]:
+                        if (spectra[x][3]) and (int(uniqueness_matrix_full.at[column,x]) < 15):
                             # add the refering to the list
                             self.refer_array.append([filenames[index_column], filenames[x]])
 
@@ -106,21 +130,7 @@ class SpectrumClustering:
                             break
                     else:
                         spectra[index_column][3] = True
-
-                # this spectrum is refered to first reference in the arrays of zeros
-
-
-                    #check if the zero element is already called as a reference
-
-
-                        ####
-                        #check if the total PPMC of sample en reference >75%, ifso refer sample to ref
-                        #samples_file_x, samples_file_index_column = fms_files[x][235:], fms_files[index_column][235:]
-                        #if np.corrcoef(samples_file_x, samples_file_index_column)[0, 1] * 100 < self.threshold:
-                            #spectra[index_column][2] = x
-                            ## add the refering to the list
-                            #self.refer_array.append([filenames[index_column], filenames[x]])
-                        ####
+                        # Should we add a field for suspicious references?
 
                 # mark all other zero elements as matching
                 for x in np.nditer(item_index):
@@ -128,6 +138,7 @@ class SpectrumClustering:
                     if x < index_column:
                         spectra[index_column][1] += [x]
                         self.match_array.append([filenames[index_column], filenames[x]])
+
 
         # Make a list with length len(spectra), the value at index i is a set{i} if the spectrum at that index is a reference spectrum
 
