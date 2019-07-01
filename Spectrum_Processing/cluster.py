@@ -103,15 +103,15 @@ class SpectrumClustering:
             # spectrum is not a reference
             else:
 
-                # Resort order of references in  item_index according to ascending UNX
+                # Filter out references in  item_index with UNX > 10, sample can only match a close reference
 
-                check_order = pd.DataFrame(columns=['index', 'UNX'])
+                check_reference = pd.DataFrame(columns=['index', 'UNX'])
                 for x in np.nditer(item_index):
                     x = int(x)
-                    check_order = check_order.append({'index': x, 'UNX': uniqueness_matrix_full.at[column, x]}, ignore_index=True)
+                    check_reference = check_reference.append({'index': x, 'UNX': uniqueness_matrix_full.at[column, x]}, ignore_index=True)
 
-                check_order.sort_values(by=['UNX', 'index'], inplace=True)
-                item_index_resorted = check_order['index'].values
+                check_reference = check_reference.loc[(check_reference['UNX'] < 10)]
+                item_index_resorted = check_reference['index'].values
                 item_index_resorted = np.append(item_index_resorted, column)
 
                 # Match non reference sample to obtained references
