@@ -50,7 +50,7 @@ class FileProvider:
         print("Sys: Reading and preprocessing PKL files...")
         with concurrent.futures.ProcessPoolExecutor() as executor:
             res= list((executor.map(self.parse_pkl_file, self.filenames)))
-            pkl_files=np.array([x[0] for x in res])
+            pkl_files = np.array([x[0] for x in res], dtype=object)"
             self.qualities=np.array([x[1] for x in res])
             self.green_filenames=self.filenames[self.qualities==Quality.GREEN]
             self.orange_filenames=self.filenames[self.qualities==Quality.ORANGE]
