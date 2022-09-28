@@ -18,9 +18,9 @@ First column is the m/z value and second column the intensity value as in the ex
 Output is stored in the Output_directory. The directory contains the regridded file for each spectrum (1 file per spectrum).
 
 <b>Requirements</b>:
-- Python v3.7
-- Pandas v0.23.3
-- Numpy v1.15.0
+- Python v3.9.13
+- Pandas v1.4.4
+- Numpy v1.22.0
 
 
 

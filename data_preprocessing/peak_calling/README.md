@@ -19,8 +19,8 @@ Output is stored in the PKL4DICE directory. The directory contains the peak list
 (1 file per spectrum).
 
 <b>Requirements</b>:
-- Rscript version 3.4.4 or newer (not tested on older versions)
-- MassSpecWavelet package version 1.48.1, available from Bioconductor (Du et al. 2006)
+- Rscript version 4.1.2
+- MassSpecWavelet package version 1.62.0, available from Bioconductor (Du et al. 2006)
 
 References:
 Du P, Kibbe WA, Lin SM (2006). “Improved peak detection in mass spectrum by incorporating continuous wavelet transform-based pattern matching.” Bioinformatics, 22, 2059-2065.

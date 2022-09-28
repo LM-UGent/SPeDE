@@ -108,7 +108,7 @@ class SpectrumClustering:
                 check_reference = pd.DataFrame(columns=['index', 'UNX'])
                 for x in np.nditer(item_index):
                     x = int(x)
-                    check_reference = check_reference.append({'index': x, 'UNX': uniqueness_matrix_full.at[column, x]}, ignore_index=True)
+                    check_reference.loc[len(check_reference.index)] = [x, uniqueness_matrix_full.at[column, x]]
 
                 check_reference = check_reference.loc[(check_reference['UNX'] < 10)]
                 item_index_resorted = check_reference['index'].values

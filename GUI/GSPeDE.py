@@ -260,7 +260,7 @@ class Homescreen(QWidget):
         self.cop_button=QCheckBox()
         self.cop_button.setChecked(True)
         self.krona_button=QCheckBox()
-        self.krona_button.setChecked(True)
+        self.krona_button.setChecked(False)
 
 
         self.i_picker = QPushButton("...")
@@ -599,7 +599,7 @@ class Homescreen(QWidget):
             warning = QMessageBox.critical(self, "Error", "File {0} unavailable.".format(filename), QMessageBox.Ok)
             return
 
-        params=yaml.load(output)
+        params=yaml.safe_load(output)
         output.close()
 
         if params is None:
