@@ -53,7 +53,8 @@ class SpectrumMatcher:
         maximum_interval_length = np.amax(self.provider.intervals[:, 2] - self.provider.intervals[:, 1] + 1)
 
         matcher_jit = SpectrumMatcherJIT(self.density, self.local, self.cutoff, self.provider.green_pkl_files,
-                                         self.provider.pkl_files_length, maximum_pkl_length, self.provider.green_fms_files,
+                                         np.array(self.provider.pkl_files_length, dtype=np.int32),
+                                         maximum_pkl_length, self.provider.green_fms_files,
                                          self.provider.intervals, maximum_interval_length)
 
         print("Sys: Start calculating using {0} processess...".format(multiprocessing.cpu_count()))
@@ -140,7 +141,7 @@ class SpectrumMatcherJIT:
         self.local = local
         self.cutoff = cutoff
         self.pkl_files = pkl_files
-        self.pkl_files_length = np.array(pkl_files_length,dtype=np.int32)
+        self.pkl_files_length = pkl_files_length
         self.maximum_pkl_length = maximum_pkl_length
         self.fms_files = fms_files
         self.intervals = intervals
