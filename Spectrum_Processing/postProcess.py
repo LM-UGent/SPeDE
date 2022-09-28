@@ -66,7 +66,7 @@ def format_CSV(refer_array, group_array, outfile_path, provider):
         #convert to DataFrame and gather all namefiles in one frame
         table=pd.DataFrame()
         for file in map_files:
-            table=pd.concat([table, pd.read_csv(os.path.join(provider.proj_path,file) , sep="\t",usecols=[2,3,35,36],encoding="mbcs")],sort=False)
+            table=pd.concat([table, pd.read_csv(os.path.join(provider.proj_path,file) , sep="\t",usecols=[2,3,35,36])],sort=False)
 
         table=table.set_index("SOURCE_FILE")
         table=table[~table.index.duplicated(keep='first')]
@@ -253,7 +253,7 @@ def generate_krona(group_array, refer_array, outfile_path, provider):
     #name_table=[SOURCE_FILE, STRAIN, BRUKER_ID, BRUKER_SCORE]
     name_table=pd.DataFrame()
     for file in map_files:
-        name_table=pd.concat([name_table, pd.read_csv(os.path.join(provider.proj_path,file) , sep="\t",usecols=[2,3,35,36],encoding="mbcs")],sort=False)
+        name_table=pd.concat([name_table, pd.read_csv(os.path.join(provider.proj_path,file) , sep="\t",usecols=[2,3,35,36])],sort=False)
 
 
     name_table=name_table.set_index("SOURCE_FILE")
