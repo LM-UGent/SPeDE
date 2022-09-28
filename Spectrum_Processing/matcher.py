@@ -117,7 +117,7 @@ class SpectrumMatcher:
 
 
 #todo: optimize: param size
-@nb.jitclass([
+@nb.experimental.jitclass([
     ('density', nb.int64),
     ('local', nb.int64),
     ('cutoff', nb.int64),
