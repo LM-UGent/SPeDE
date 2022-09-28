@@ -4,12 +4,12 @@
 
 ## Requirements
 
-- Python v3.7
-- Pandas v0.23.3
-- Numpy v1.15.0
-- Numba v0.39.0
-- PyQt5 v5.11.2
-- PyYAML v3.13
+- Python v3.9.13
+- Pandas v1.4.4
+- Numpy v1.22.0
+- Numba v0.56.0
+- PyQt5 v5.15.7
+- PyYAML v6.0
 
 
 
