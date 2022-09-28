@@ -260,7 +260,7 @@ class Homescreen(QWidget):
         self.cop_button=QCheckBox()
         self.cop_button.setChecked(True)
         self.krona_button=QCheckBox()
-        self.krona_button.setChecked(True)
+        self.krona_button.setChecked(False)
 
 
         self.i_picker = QPushButton("...")
