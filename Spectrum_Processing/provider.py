@@ -45,7 +45,7 @@ class FileProvider:
         # The filenames are the names of the files without the PKL_ or ReGrid_ prefix.
         # Remove duplicate names by converting the namelist to a set, sort the list for consistent output
         self.filenames= [x for x in os.listdir(project_directory) if x[:4]=="PKL_"]
-        self.filenames = np.array(sorted(list(set([fms_filename[-24:] for fms_filename in self.filenames]))))
+        self.filenames = np.array(sorted(list(set([fms_filename.removeprefix("PKL_") for fms_filename in self.filenames]))))
         # Read all fms and pkl files in parallel and filter between Green and Orange qualities
         print("Sys: Reading and preprocessing PKL files...")
         with concurrent.futures.ProcessPoolExecutor() as executor:
