@@ -1,1 +1,2 @@
-{cluster: '75', cutoff: '30', density: '700', local: '50'}
+{cluster: '75', cutoff: '30', density: '700', intervals: ppmc_interval_index.csv,
+  local: '50'}
