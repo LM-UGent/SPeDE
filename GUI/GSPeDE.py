@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import *
 #Own modules
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),".."))
 from Spectrum_Processing.SPeDE import SPeDE_wrapper
-DEVELOP=True
+DEVELOP=False
 
 def main():
     app = QApplication(sys.argv)
@@ -395,7 +395,6 @@ class Homescreen(QWidget):
         params=self.get_config_params().values()
         intervals, projdir, output_directory, density, cluster, local, cutoff, validation, output_format, copy, krona =params
 
-
         # Validate input
 
         ## Check not empty
@@ -475,7 +474,6 @@ class Homescreen(QWidget):
 
         self.process_args=arguments
 
-        print(arguments)
         argdict={}
 
         err_queue=Queue()
@@ -585,7 +583,7 @@ class Homescreen(QWidget):
                 filename= os.path.join(os.path.dirname(os.path.abspath(__file__)), "default_config_develop.yaml")
             else:
                 if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), self.default_value_filename)):
-                    filename= os.path.join(os.path.dirname(os.path.abspath(__file__)), self.default_value_filename)
+                    filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.default_value_filename)
                 else:
                     filename=""
 
@@ -599,13 +597,16 @@ class Homescreen(QWidget):
             warning = QMessageBox.critical(self, "Error", "File {0} unavailable.".format(filename), QMessageBox.Ok)
             return
 
-        params=yaml.safe_load(output)
+        params=yaml.safe_load(output)  
         output.close()
 
         if params is None:
             return
 
-
+        # If loaded from default, ajdust path to intervals file
+        if load_default:
+            params["intervals"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), params["intervals"])
+            
         #make dictionary mapping names to items
         func_dict = {"intervals": self.set_intervals, "project_directory": self.set_proj_dir,
                      "density": self.set_density, "cluster": self.set_cluster, "local": self.set_local,
@@ -614,6 +615,7 @@ class Homescreen(QWidget):
         #set all parameters
         for k,v in params.items():
             func_dict[k](v)
+
 
     def handle_store_config(self):
         """Handle the storing of parameters in a configuration .yaml file.
