@@ -44,6 +44,10 @@ def main(intervals, project_directory, output_directory, peaks, density, local, 
     if affix is None:
         affix=datetime.datetime.today().strftime("%Y_%m_%d_%H_%M_%S_")
 
+    if not os.path.isdir(output_directory):
+        print("Sys: output directory",output_directory,"does not exist yet. Creating it for you.")
+        os.makedirs(output_directory)
+
     print("Sys: Reading all spectra...")
     provider = FileProvider(intervals, project_directory, int(peaks))
 
