@@ -28,61 +28,70 @@ def format_CSV(refer_array, group_array, outfile_path, provider):
     :type provider: FileProvider
     :return: void
     """
-
-
-    #todo: optimize: make all dataframe manipulations inplace if that would be more memory friendly
+    # Define column names
+    column_names=["SOURCE_FILE", "REFERENCE", "REFERENCE_NUMBER", "REFERENCE_GROUP"]
+    
+    # todo: optimize: make all dataframe manipulations inplace if that would be more memory friendly
     group_dict={}
     index=0
     data=[]
 
-    #prepare a dict to map spectra to [source_file, is_reference, references, group number]
+    # prepare a dict to map spectra to [source_file, is_reference, references, group number]
+    # first add all references
     for [spectrum, group_number] in group_array:
         group_dict[spectrum]=[group_number, index]
         data.append([spectrum[:-4], "Yes", index, group_number])
         index+=1
 
 
-    #add references to dict, all referenced spectra should already be in the dict
+    # add non-references to list, all reference spectra should already be in the list above
+    data_no_reference = []
     for [spectrum, ref_spectrum] in refer_array:
-        data.append([spectrum[:-4], "No", group_dict[ref_spectrum][1], group_dict[ref_spectrum][0]])
+        data_no_reference.append([spectrum[:-4], "No", group_dict[ref_spectrum][1], group_dict[ref_spectrum][0]])
 
-    #sort the data according to groups
-    data= sorted(data,key=lambda x: x[3])
-
-    #convert data to DataFrame
-    column_names=["SOURCE_FILE", "REFERENCE", "REFERENCE_NUMBER", "GROUP"]
+    # remove duplicates, keep only first occurrence
+    data_no_reference_pd = pd.DataFrame(data_no_reference, columns=column_names)
+    data_no_reference_pd.drop_duplicates(subset="SOURCE_FILE", keep='first', inplace=True)
+    
+    # convert data to DataFrame
     data=pd.DataFrame(data,columns=column_names)
 
-    #Don't drop column source file here, we still need it
-    data=data.set_index("SOURCE_FILE",drop=False)
+    # merge data and data_no_reference_pd
+    data = pd.concat([data, data_no_reference_pd], sort=False)
 
-    #get strain names, bruker id, bruker score
+    # sort the data according to groups
+    data.sort_values(by=["REFERENCE_GROUP", "SOURCE_FILE"], inplace=True)
 
-    #get QualityControlledDBField files
+    # don't drop column source file here, we still need it
+    data = data.set_index("SOURCE_FILE",drop=False)
+
+    # get strain names, bruker id, bruker score
+
+    # get QualityControlledDBField files
     map_files= [x for x in os.listdir(provider.proj_path) if x[-29:-4]=="QualityControlledDBFields"]
 
     if len(map_files)!=0:
 
-        #convert to DataFrame and gather all namefiles in one frame
+        # convert to DataFrame and gather all namefiles in one frame
         table=pd.DataFrame()
         for file in map_files:
             table=pd.concat([table, pd.read_csv(os.path.join(provider.proj_path,file) , sep="\t",usecols=[2,3,35,36])],sort=False)
 
         table=table.set_index("SOURCE_FILE")
         table=table[~table.index.duplicated(keep='first')]
-    else:
-        #make a table with all NaN values, index SOURCE_FILE and appropriate columns
+    else: # there is no QualityControlledDBField file
+        # make a table with all NaN values, index SOURCE_FILE and appropriate columns
         table=data.copy()
         table.insert(0, 'STRAIN', pd.Series([np.NaN]*len(table.index),index=table.index))
         table.insert(0, 'BRUKER_TOPHIT', pd.Series([np.NaN]*len(table.index),index=table.index))
         table.insert(0, 'BRUKER_SCORE', pd.Series([np.NaN]*len(table.index),index=table.index))
-        table=table.drop(columns=["SOURCE_FILE",  "REFERENCE", "REFERENCE_NUMBER", "GROUP"])
+        table=table.drop(columns=["SOURCE_FILE",  "REFERENCE", "REFERENCE_NUMBER", "REFERENCE_GROUP"])
         print(table)
 
 
-    #get qualities table
+    # get qualities table
     filenames_raw=[x[:-4] for x in provider.filenames]
-    filenames=pd.DataFrame(filenames_raw,columns=["SOURCE_FILE"])
+    filenames=pd.DataFrame(filenames_raw, columns=["SOURCE_FILE"])
 
 
     qualities=[]
@@ -98,32 +107,31 @@ def format_CSV(refer_array, group_array, outfile_path, provider):
 
     qualities=pd.DataFrame(qualities,columns=["QUALITY"])
     qualities=pd.concat([filenames,qualities],axis=1)
-
-
     qualities=qualities.set_index("SOURCE_FILE")
 
-    #join everything on the field SOURCE_FILE
+    # join everything on the field SOURCE_FILE
     result = pd.concat([data, qualities, table], axis=1,join="inner",sort=False)
 
     try:
         outfile=open(outfile_path,"w+")
     except IOError:
         raise IOError
-    #write the main table to the outfile
-    column_names=["SOURCE_FILE","QUALITY","REFERENCE","REFERENCE_NUMBER","STRAIN","BRUKER_TOPHIT","BRUKER_SCORE"]
+    
+    # write the main table to the outfile
+    column_names=["SOURCE_FILE","QUALITY","REFERENCE","REFERENCE_NUMBER","REFERENCE_GROUP","STRAIN","BRUKER_TOPHIT","BRUKER_SCORE"]
     result=result.reindex(columns=column_names)
     pd.DataFrame.to_csv(result,outfile, index=False)
 
-
-    #find the spectra that aren't matched
+    # todo: change this so 'RED' spectra are added in csv format
+    # find the spectra that aren't matched
     outfile.write("\nNot matched:\n")
 
-    #sort both lists and run through them to find which ones are missing
+    # sort both lists and run through them to find which ones are missing
     not_red_filenames =[x[:-4] for x in sorted(list(provider.orange_filenames)+list(provider.green_filenames))]
     matched_filenames=sorted(data["SOURCE_FILE"].values)
     not_matched_filenames=[]
 
-    if len(not_red_filenames)!= len(matched_filenames): #if both are the same length, they both have all references
+    if len(not_red_filenames)!= len(matched_filenames): # if both are the same length, they both have all references
         not_red_index=0
         matched_index=0
         last_matched_index=-1
