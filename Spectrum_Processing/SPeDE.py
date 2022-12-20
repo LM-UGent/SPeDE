@@ -67,7 +67,7 @@ def main(intervals, project_directory, output_directory, peaks, density, local, 
     cluster.generate_reference_list()
 
     print("Sys: Preparing dice data...")
-    dice_matcher= DiceMatcher(provider,cluster.reference_list)
+    dice_matcher = DiceMatcher(provider,int(density),cluster.reference_list)
     cluster.integrate_dice_refers(dice_matcher.dice_referlist)
 
     print("Sys: Writing clustering...")

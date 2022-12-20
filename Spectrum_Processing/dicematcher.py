@@ -4,7 +4,7 @@ import numpy as np
 class DiceMatcher:
     """Class that takes care of DICE matching samples to a reference list."""
 
-    def __init__(self, provider, reference_list):
+    def __init__(self, provider, density, reference_list):
         """
 
         :param provider: Instance of FileProvider class.
@@ -14,6 +14,7 @@ class DiceMatcher:
         """
 
         self.provider=provider
+        self.density=density
         self.reference_list=reference_list
         self.dice_matrix=None
         self.dice_referlist=None
@@ -92,7 +93,7 @@ class DiceMatcher:
                 match_ppmd=succ_match*2*10**6
 
 
-            if match_ppmd <= 700:
+            if match_ppmd <= self.density:
                 #the current sample peak is matched to a reference peak
                 shared_xy+=1
                 start_search_index=sample_index+1
