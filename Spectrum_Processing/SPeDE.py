@@ -88,8 +88,15 @@ def main(intervals, project_directory, output_directory, peaks, density, local, 
 
 
 if __name__ == '__main__':
+
+    # Assumes intervals file is named 'ppmc_interval_index.csv' and is located in folder GUI as 
+    intervals_location = "GUI/ppmc_interval_index.csv"
+    path_intervals_file = os.path.join(os.path.dirname(os.path.abspath(__file__)).rsplit(os.sep,1)[0],intervals_location)
+
     parser = argparse.ArgumentParser(description='Determines the reference spectra and clustering of the given samples.')
 
+    parser.add_argument('-i', dest='intervals', default=path_intervals_file,
+                        help='path to file specifying the intervals (default: %(default)s)')
     parser.add_argument('-d', dest='density', default=700,
                         help='the PPM threshold (default: %(default)s)')
     parser.add_argument('-c', dest='cluster', default=75,
@@ -114,7 +121,7 @@ if __name__ == '__main__':
                         help='print the validation data to an output file (default: %(default)s)')
 
 
-    parser.add_argument('intervals', help='file specifying the intervals')
+    #parser.add_argument('intervals', help='file specifying the intervals')
     parser.add_argument('project_directory', help='directory containing all datafiles')
     parser.add_argument('output_directory', help='directory which will contain any output file')
 
